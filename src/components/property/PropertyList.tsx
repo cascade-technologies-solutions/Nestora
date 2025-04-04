@@ -50,6 +50,7 @@ const PropertyList = ({
 
   return (
     <div>
+      {/* Always show the View All Properties button */}
       <div className="mb-6 flex justify-end">
         <Button 
           onClick={handleViewAllClick} 
