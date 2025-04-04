@@ -99,6 +99,14 @@ export default {
 				'slide-in': {
 					from: { transform: 'translateX(-100%)' },
 					to: { transform: 'translateX(0)' }
+				},
+				'vibrate': {
+					'0%': { transform: 'translateX(0)' },
+					'20%': { transform: 'translateX(-2px)' },
+					'40%': { transform: 'translateX(2px)' },
+					'60%': { transform: 'translateX(-2px)' },
+					'80%': { transform: 'translateX(2px)' },
+					'100%': { transform: 'translateX(0)' }
 				}
 			},
 			animation: {
@@ -106,7 +114,8 @@ export default {
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.6s ease-out',
 				'fade-up': 'fade-up 0.6s ease-out',
-				'slide-in': 'slide-in 0.3s ease-out'
+				'slide-in': 'slide-in 0.3s ease-out',
+				'vibrate': 'vibrate 1s infinite'
 			},
 			boxShadow: {
 				'subtle': '0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.04)',

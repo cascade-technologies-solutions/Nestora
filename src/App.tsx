@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { WishlistProvider } from "./contexts/WishlistContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ScrollToTopButton from "./components/ScrollToTopButton";
+import ChatBot from "./components/ChatBot";
 import Index from "./pages/Index";
 import AllLocalities from "./pages/AllLocalities";
 import AllProperties from "./pages/AllProperties";
@@ -38,6 +40,8 @@ const App = () => (
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <ScrollToTopButton />
+            <ChatBot />
           </WishlistProvider>
         </AuthProvider>
       </BrowserRouter>
