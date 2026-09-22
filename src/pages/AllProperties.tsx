@@ -50,8 +50,6 @@ const AllProperties = () => {
     const priceFilter = params.get('price');
     const typeFilter = params.get('type');
     
-    console.log("Filtering with:", { locationFilter, priceFilter, typeFilter });
-    
     let filtered = [...allProperties];
     
     // Apply type filter if present
@@ -71,7 +69,6 @@ const AllProperties = () => {
       filtered = filtered.filter(property => 
         property.address.includes(locationFilter)
       );
-      console.log("After location filter:", filtered.length, "properties");
     }
     
     if (priceFilter) {
@@ -79,7 +76,6 @@ const AllProperties = () => {
       filtered = filtered.filter(property => 
         isPropertyInPriceRange(property.price, priceFilter)
       );
-      console.log("After price filter:", filtered.length, "properties");
     }
     
     setFilteredProperties(filtered);

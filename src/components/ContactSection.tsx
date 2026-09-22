@@ -24,7 +24,6 @@ const ContactSection = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted:', formState);
     // Reset form
     setFormState({ name: '', email: '', phone: '', message: '' });
     // Here you would normally send the data to your backend

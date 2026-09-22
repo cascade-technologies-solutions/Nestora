@@ -1,5 +1,5 @@
 import { ArrowLeft, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ const localities = [
     name: "Vidyanagar",
     price: "Starting at ₹1.2M",
     properties: 24,
-    image: "https://images.unsplash.com/photo-1518481852452-9415dscf0e3f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
+    image: "https://images.unsplash.com/photo-1518481852452-9415dscf0e3f?ixlib=rb-4.0.3&id=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
   },
   {
     id: 2,
@@ -24,14 +24,14 @@ const localities = [
     name: "Deshpande Nagar",
     price: "Starting at ₹950K",
     properties: 21,
-    image: "https://images.unsplash.com/photo-1573059756025-0038d4ffcbe2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=735&q=80",
+    image: "https://images.unsplash.com/photo-1573059756025-0038d4ffcbe2?ixlib=rb-4.0.3&id=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=735&q=80",
   },
   {
     id: 4,
     name: "Navanagar",
     price: "Starting at ₹1.5M",
     properties: 12,
-    image: "https://images.unsplash.com/photo-1574259392081-dbd30e96bda7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=765&q=80",
+    image: "https://images.unsplash.com/photo-1574259392081-dbd30e96bda7?ixlib=rb-4.0.3&id=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=765&q=80",
   },
   {
     id: 5,
@@ -45,7 +45,7 @@ const localities = [
     name: "Gokul Road",
     price: "Starting at ₹2.2M",
     properties: 7,
-    image: "https://images.unsplash.com/photo-1483401757487-2ced3fa77952?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1173&q=80",
+    image: "https://images.unsplash.com/photo-1483401757487-2ced3fa77952?ixlib=rb-4.0.3&id=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1173&q=80",
   },
   {
     id: 7,
@@ -92,22 +92,24 @@ const localities = [
 ];
 
 const AllLocalities = () => {
+  const navigate = useNavigate();
+
   const handleViewLocality = (localityName: string) => {
-    alert(`Viewing details for ₹{localityName}. This would navigate to a locality details page in a production environment.`);
+    navigate(`/real-estate?location=${localityName}`);
   };
 
   return (
     <div className="min-h-screen bg-white">
       <Header />
       <main className="pt-32 pb-16 px-6 md:px-12 max-w-7xl mx-auto">
-        <div className="mb-8 flex items-center">
+        <div className="mb-8 flex items-center gap-4">
           <Link to="/">
-            <Button variant="ghost" className="hover:bg-gray-50">
-              <ArrowLeft className="h-5 w-5 mr-2" />
-              Back to Home
+            <Button variant="ghost" className="hover:bg-gray-50 flex items-center gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back
             </Button>
           </Link>
-          <h1 className="text-3xl md:text-4xl font-bold">All Localities in Hubli</h1>
+          <h1 className="text-3xl md:text-4xl font-bold font-display text-Nestora-dark">All Localities</h1>
         </div>
         
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -155,7 +157,7 @@ const LocalityCard = ({ locality, onView }: LocalityCardProps) => {
           <Button 
             className="bg-white hover:bg-gray-100 text-Nestora-dark rounded-full w-10 h-10 p-0 flex items-center justify-center"
             onClick={onView}
-            aria-label={`View ₹{locality.name}`}
+            aria-label={`View ${locality.name}`}
           >
             <ArrowRight className="h-5 w-5" />
           </Button>

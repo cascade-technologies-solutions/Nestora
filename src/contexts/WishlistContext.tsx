@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 
 // Property type for wishlist items
 export type WishlistProperty = {
-  id: number;
+  id: number | string;
   title: string;
   price: string;
   address: string;
@@ -21,8 +21,8 @@ export type WishlistProperty = {
 type WishlistContextType = {
   wishlist: WishlistProperty[];
   addToWishlist: (property: WishlistProperty) => void;
-  removeFromWishlist: (propertyId: number) => void;
-  isInWishlist: (propertyId: number) => boolean;
+  removeFromWishlist: (propertyId: number | string) => void;
+  isInWishlist: (propertyId: number | string) => boolean;
 };
 
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
@@ -99,13 +99,13 @@ export const WishlistProvider = ({ children }: { children: React.ReactNode }) =>
     });
   };
 
-  const removeFromWishlist = (propertyId: number) => {
+  const removeFromWishlist = (propertyId: number | string) => {
     if (!isAuthenticated) return;
     
     setWishlist(prev => prev.filter(property => property.id !== propertyId));
   };
 
-  const isInWishlist = (propertyId: number) => {
+  const isInWishlist = (propertyId: number | string) => {
     if (!isAuthenticated) return false;
     
     return wishlist.some(property => property.id === propertyId);

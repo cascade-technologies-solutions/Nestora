@@ -10,6 +10,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        custom: "",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
@@ -42,9 +43,33 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
+    
+    // Auto-detect custom colored buttons to prevent text/bg clashes in dark mode
+    let resolvedVariant = variant;
+    if (!variant || variant === 'default') {
+      const str = className || '';
+      const hasCustomStyles = 
+        str.includes('bg-Nestora') || 
+        str.includes('text-Nestora') || 
+        str.includes('bg-green-') || 
+        str.includes('bg-blue-') || 
+        str.includes('bg-slate-') || 
+        str.includes('bg-white') || 
+        str.includes('text-white') || 
+        str.includes('bg-emerald-') ||
+        str.includes('bg-amber-') ||
+        str.includes('bg-cyan-') ||
+        str.includes('bg-indigo-') ||
+        str.includes('bg-red-');
+        
+      if (hasCustomStyles) {
+        resolvedVariant = 'custom';
+      }
+    }
+    
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={cn(buttonVariants({ variant: resolvedVariant, size, className }))}
         ref={ref}
         {...props}
       />

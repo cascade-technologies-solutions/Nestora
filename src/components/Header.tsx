@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Menu, X, ChevronDown, User, Heart, LogOut } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Menu, X, ChevronDown, User, Heart, LogOut, Phone } from 'lucide-react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { CONFIG } from '@/config';
+import { settingsRepository } from '@/admin/repositories/settingsRepository';
+import type { SiteSettings } from '@/admin/types/admin';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -11,16 +14,31 @@ const Header = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const [settings, setSettings] = useState<SiteSettings | null>(null);
+
+  useEffect(() => {
+    settingsRepository.get().then(setSettings);
+  }, []);
+
+  const companyName = settings?.companyName || 'NestoraHub';
+  const logoUrl = settings?.logoUrl || '';
+  const whatsappPhone = settings?.whatsapp?.trim() || CONFIG.WHATSAPP_PHONE;
+  const whatsappActive = whatsappPhone.length > 0;
+  const whatsappUrl = whatsappActive
+    ? `https://wa.me/${whatsappPhone.replace(/[^0-9+]/g, '')}?text=${encodeURIComponent(
+        'Hello Nestora, I would like to make an enquiry.'
+      )}`
+    : '#';
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
 
     window.addEventListener('scroll', handleScroll);
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   useEffect(() => {
@@ -29,88 +47,102 @@ const Header = () => {
     } else {
       document.body.style.overflow = '';
     }
-    
     return () => {
       document.body.style.overflow = '';
     };
   }, [isMenuOpen]);
 
-  const closeMenu = () => {
-    setIsMenuOpen(false);
-  };
-
-  const scrollToSection = (sectionId: string) => {
-    closeMenu();
-    if (window.location.pathname !== '/') {
-      navigate('/');
-      // Add a delay to allow navigation to complete before scrolling
-      setTimeout(() => {
-        const element = document.getElementById(sectionId);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 100);
-    } else {
-      const element = document.getElementById(sectionId);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
-    }
-  };
-
-  const handleUserMenuToggle = () => {
-    setIsUserMenuOpen(!isUserMenuOpen);
-  };
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  const closeMenu = () => setIsMenuOpen(false);
 
   const handleLogout = () => {
     setIsUserMenuOpen(false);
     logout();
-
   };
+
+  const navLinks = [
+    { label: 'Home', path: '/' },
+    { label: 'About', path: '/about' },
+    { label: 'Services', path: '/services' },
+    { label: 'Projects', path: '/projects' },
+    { label: 'Real Estate', path: '/real-estate' },
+    { label: 'Contact', path: '/contact' },
+  ];
+
   return (
     <header 
       className={cn(
         'fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out px-6 md:px-12 bg-white',
         isScrolled 
-          ? 'py-4 shadow-subtle' 
-          : 'py-6'
+          ? 'py-3 shadow-md' 
+          : 'py-5'
       )}
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Logo */}
-        <a href="/" className="flex items-center">
-          <span className="text-2xl font-display font-bold text-Nestora-dark">
-            Nestora<span className="text-Nestora-blue">Hub</span>
-          </span>
-        </a>
+        <Link to="/" className="flex items-center" onClick={closeMenu}>
+          {logoUrl ? (
+            <img src={logoUrl} alt={companyName} className="h-8 w-auto object-contain" />
+          ) : (
+            <span className="text-2xl font-display font-bold text-Nestora-dark">
+              {companyName.endsWith('Hub') ? (
+                <>
+                  {companyName.slice(0, -3)}<span className="text-Nestora-blue">Hub</span>
+                </>
+              ) : (
+                companyName
+              )}
+            </span>
+          )}
+        </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-1">
-          <NavItem href="#hero" label="Home" onClick={() => scrollToSection('hero')} />
-          <NavItem href="#services" label="Services" onClick={() => scrollToSection('services')} />
-          <NavItem href="#properties" label="Properties" onClick={() => scrollToSection('properties')} />
-          <NavItem href="#localities" label="Localities" onClick={() => scrollToSection('localities')} />
-          <NavItem href="#testimonials" label="Testimonials" onClick={() => scrollToSection('testimonials')} />
-          <NavItem href="#contact" label="Contact Us" onClick={() => scrollToSection('contact')} />
+        <nav className="hidden lg:flex items-center gap-1">
+          {navLinks.map((link) => (
+            <Link
+              key={link.path}
+              to={link.path}
+              className={cn(
+                "px-4 py-2 font-medium text-sm transition-colors duration-200 rounded-full",
+                location.pathname === link.path 
+                  ? "text-Nestora-blue bg-Nestora-blue/5"
+                  : "text-Nestora-dark hover:text-Nestora-blue hover:bg-gray-50"
+              )}
+            >
+              {link.label}
+            </Link>
+          ))}
         </nav>
 
-        {/* Auth Buttons (Desktop) */}
-        <div className="hidden md:flex items-center gap-4">
+        {/* Action Buttons (Desktop) */}
+        <div className="hidden lg:flex items-center gap-4">
+          {whatsappActive && (
+            <a 
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button className="bg-green-600 hover:bg-green-700 text-white rounded-full px-5 flex items-center gap-2">
+                <Phone size={16} />
+                WhatsApp Enquiry
+              </Button>
+            </a>
+          )}
+
           {isAuthenticated ? (
             <div className="relative">
               <Button 
                 variant="ghost" 
-                className="flex items-center gap-2"
-                onClick={handleUserMenuToggle}
+                className="flex items-center gap-2 rounded-full"
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
               >
                 <User size={18} />
                 <span className="font-medium">{user?.name?.split(' ')[0]}</span>
-                <ChevronDown size={16} className={`transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown size={16} className={cn('transition-transform', isUserMenuOpen ? 'rotate-180' : '')} />
               </Button>
 
-              {/* User dropdown menu */}
               {isUserMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-md py-1 z-50">
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-md py-1 z-50 border border-gray-100">
                   <Link 
                     to="/wishlist"
                     className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -130,54 +162,110 @@ const Header = () => {
               )}
             </div>
           ) : (
-            <>
+            <div className="flex items-center gap-2">
               <Link to="/login">
-                <Button variant="ghost" className="hover:bg-Nestora-blue/10 hover:text-Nestora-blue">
+                <Button variant="ghost" className="hover:bg-Nestora-blue/10 hover:text-Nestora-blue rounded-full">
                   Sign In
-</Button>
+                </Button>
               </Link>
               <Link to="/register">
                 <Button className="bg-Nestora-blue hover:bg-Nestora-blue/90 text-white rounded-full px-6">
                   Register
                 </Button>
               </Link>
-            </>
+            </div>
           )}
         </div>
+
+        {/* Mobile Menu Toggle */}
+        <div className="flex items-center gap-4 lg:hidden">
+          {whatsappActive && (
+            <a 
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="sm:block hidden"
+            >
+              <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white rounded-full px-4 flex items-center gap-1.5">
+                <Phone size={14} />
+                WhatsApp
+              </Button>
+            </a>
+          )}
+
+          <Button variant="ghost" size="icon" onClick={toggleMenu} aria-label="Toggle menu">
+            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </Button>
+        </div>
       </div>
+
+      {/* Mobile Navigation Drawer */}
+      {isMenuOpen && (
+        <div className="fixed inset-0 top-[60px] bg-white z-40 lg:hidden flex flex-col p-6 border-t border-gray-100 animate-fade-in overflow-y-auto">
+          <nav className="flex flex-col gap-4 mb-8">
+            {navLinks.map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                onClick={closeMenu}
+                className={cn(
+                  "py-3 text-lg font-medium border-b border-gray-50",
+                  location.pathname === link.path 
+                    ? "text-Nestora-blue" 
+                    : "text-Nestora-dark hover:text-Nestora-blue"
+                )}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="flex flex-col gap-4 mt-auto pb-10">
+            {whatsappActive && (
+              <a 
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={closeMenu}
+              >
+                <Button className="bg-green-600 hover:bg-green-700 text-white rounded-full w-full py-6 flex items-center justify-center gap-2">
+                  <Phone size={18} />
+                  WhatsApp Enquiry
+                </Button>
+              </a>
+            )}
+
+            {isAuthenticated ? (
+              <div className="flex flex-col gap-2">
+                <Link to="/wishlist" onClick={closeMenu}>
+                  <Button variant="outline" className="w-full rounded-full py-6 flex items-center justify-center gap-2">
+                    <Heart size={18} />
+                    My Wishlist
+                  </Button>
+                </Link>
+                <Button variant="destructive" className="w-full rounded-full py-6" onClick={() => { handleLogout(); closeMenu(); }}>
+                  <LogOut size={18} className="mr-2" />
+                  Sign Out
+                </Button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                <Link to="/login" onClick={closeMenu}>
+                  <Button variant="outline" className="w-full rounded-full py-6">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link to="/register" onClick={closeMenu}>
+                  <Button className="bg-Nestora-blue hover:bg-Nestora-blue/90 text-white w-full rounded-full py-6">
+                    Register
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </header>
-  );
-};
-
-// Desktop Nav Item
-const NavItem = ({ href, label, onClick }: { href: string; label: string; onClick: () => void }) => {
-  return (
-    <a 
-      href={href}
-      className="relative px-4 py-2 text-Nestora-dark hover:text-Nestora-blue font-medium text-sm transition-colors duration-200"
-      onClick={(e) => {
-        e.preventDefault();
-        onClick();
-      }}
-    >
-      {label}
-    </a>
-  );
-};
-
-// Mobile Nav Item
-const MobileNavItem = ({ href, label, onClick }: { href: string; label: string, onClick: () => void }) => {
-  return (
-    <a 
-      href={href}
-      className="py-3 text-lg font-medium text-Nestora-dark border-b border-gray-100"
-      onClick={(e) => {
-        e.preventDefault();
-        onClick();
-      }}
-    >
-      {label}
-    </a>
   );
 };
 

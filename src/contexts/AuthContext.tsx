@@ -26,8 +26,25 @@ const USER_COOKIE_NAME = 'real_Nestora_user';
 // Cookie expiration in days
 const COOKIE_EXPIRATION_DAYS = 30;
 
-// Mock user database for demo purposes
-const MOCK_USERS: Record<string, { id: string; email: string; name: string; password: string }> = {};
+// Persistent user database for demo/wishlist purposes
+const USERS_STORAGE_KEY = 'nestora_public_users';
+
+function getStoredUsers(): Record<string, { id: string; email: string; name: string; password: string }> {
+  try {
+    const raw = localStorage.getItem(USERS_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveStoredUsers(users: Record<string, any>) {
+  try {
+    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+  } catch (e) {
+    console.error(e);
+  }
+}
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -64,11 +81,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      const foundUser = Object.values(MOCK_USERS).find(u => 
-        u.email === email && u.password === password
+      const storedUsers = getStoredUsers();
+      const foundUser = Object.values(storedUsers).find(u => 
+        u.email.toLowerCase() === email.toLowerCase() && u.password === password
       );
       
       if (foundUser) {
@@ -100,11 +117,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const register = async (name: string, email: string, password: string) => {
     setIsLoading(true);
     try {
-      // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Check if user already exists
-      if (Object.values(MOCK_USERS).some(u => u.email === email)) {
+      const storedUsers = getStoredUsers();
+      if (Object.values(storedUsers).some(u => u.email.toLowerCase() === email.toLowerCase())) {
         toast({
           title: "Registration failed",
           description: "Email already exists",
@@ -114,7 +130,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return;
       }
       
-      // Create new user
       const newUser = {
         id: Date.now().toString(),
         email,
@@ -122,9 +137,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         password
       };
       
-      MOCK_USERS[newUser.id] = newUser;
+      storedUsers[newUser.id] = newUser;
+      saveStoredUsers(storedUsers);
       
-      // Set user without password
       const { password: _, ...userWithoutPassword } = newUser;
       setUser(userWithoutPassword);
       

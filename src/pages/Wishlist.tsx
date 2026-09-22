@@ -53,7 +53,7 @@ const Wishlist = () => {
             <div className="text-center py-12">
               <h3 className="text-xl font-medium mb-4">No properties in wishlist</h3>
               <p className="text-gray-500 mb-6">Start adding properties to your wishlist to keep track of your favorites.</p>
-              <Link to="/properties">
+              <Link to="/real-estate">
                 <Button className="bg-Nestora-blue hover:bg-Nestora-blue/90">
                   Browse Properties
                 </Button>

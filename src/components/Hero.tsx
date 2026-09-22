@@ -1,52 +1,75 @@
 import { useState, useEffect } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-
-const heroImages = [
-  'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2075&q=80',
-  'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
-  'https://images.unsplash.com/photo-1613977257363-707ba9348227?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
-];
+import { settingsRepository } from '@/admin/repositories/settingsRepository';
+import { homepageRepository } from '@/admin/repositories/homepageRepository';
+import type { HomepageCMS, SiteSettings } from '@/admin/types/admin';
 
 const Hero = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [cms, setCms] = useState<HomepageCMS | null>(null);
+  const [settings, setSettings] = useState<SiteSettings | null>(null);
 
-
+  // Load CMS content on mount
   useEffect(() => {
-    setIsLoaded(true);
-
-    const interval = setInterval(() => {
-      setActiveIndex((prevIndex) => (prevIndex + 1) % heroImages.length);
-    }, 6000);
-
-    return () => clearInterval(interval);
+    Promise.all([
+      homepageRepository.get(),
+      settingsRepository.get(),
+    ]).then(([cmsData, settingsData]) => {
+      setCms(cmsData);
+      setSettings(settingsData);
+      setIsLoaded(true);
+    });
   }, []);
 
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
+  useEffect(() => {
+    if (!cms) return;
+    const interval = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % cms.heroImages.length);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, [cms]);
+
+  // Derive WhatsApp from settings
+  const whatsappPhone = settings?.whatsapp?.trim() ?? '';
+  const whatsappActive = whatsappPhone.length > 0;
+  const whatsappUrl = whatsappActive
+    ? `https://wa.me/${whatsappPhone.replace(/[^0-9+]/g, '')}?text=${encodeURIComponent(
+        'Hello Nestora, I would like to discuss a project with you.'
+      )}`
+    : '#';
+
+  // Show skeleton while loading (keeps layout stable)
+  if (!isLoaded || !cms) {
+    return (
+      <section id="hero" className="relative min-h-screen flex items-center pt-20 bg-slate-900">
+        <div className="absolute inset-0 bg-black/65" />
+      </section>
+    );
+  }
+
+  // Parse heading — support \n line breaks stored in CMS
+  const headingLines = cms.heroHeading.split('\\n');
 
   return (
     <section id="hero" className="relative min-h-screen flex items-center pt-20">
       {/* Background Images Carousel */}
       <div className="absolute inset-0 overflow-hidden">
-        {heroImages.map((img, index) => (
-          <div 
+        {cms.heroImages.map((img, index) => (
+          <div
             key={index}
             className={cn(
-              "absolute inset-0 transition-opacity duration-1000 ease-in-out",
-              activeIndex === index ? "opacity-100" : "opacity-0"
+              'absolute inset-0 transition-opacity duration-1000 ease-in-out',
+              activeIndex === index ? 'opacity-100' : 'opacity-0'
             )}
           >
-            <div className="absolute inset-0 bg-black bg-opacity-40" />
-            <img 
-              src={img} 
-              alt="Luxury property" 
+            <div className="absolute inset-0 bg-black bg-opacity-65" />
+            <img
+              src={img}
+              alt="Engineering and Construction Infrastructure"
               className="w-full h-full object-cover"
             />
           </div>
@@ -54,34 +77,81 @@ const Hero = () => {
       </div>
 
       {/* Hero Content */}
-      <div className="relative w-full max-w-7xl mx-auto px-6 md:px-12 py-6 md:py-12">
-        <div className="max-w-3xl animate-fade-in animation-delay-200">
-          <div className="inline-flex items-center rounded-full bg-white bg-opacity-20 backdrop-blur-sm px-4 py-1.5 mb-6">
-            <span className="text-white text-sm font-medium">Discover Your Dream Property</span>
+      <div className="relative w-full max-w-7xl mx-auto px-6 md:px-12 py-12 md:py-24">
+        <div className={cn('max-w-3xl', isLoaded && 'animate-fade-in animation-delay-200')}>
+          <div className="inline-flex items-center rounded-full bg-white bg-opacity-15 backdrop-blur-sm px-4 py-1.5 mb-6">
+            <span className="text-white text-sm font-medium tracking-wide uppercase">
+              Engineering &amp; Construction Solutions
+            </span>
           </div>
-          
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
-            Find Your <span className="text-Nestora-blue">Perfect Place</span> to Call Home
+
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold font-display text-white mb-6 leading-tight">
+            {headingLines.map((line, i) => (
+              <span key={i}>
+                {line}
+                {i < headingLines.length - 1 && <br />}
+              </span>
+            ))}
           </h1>
-          
-          <p className="text-white text-lg md:text-xl mb-8 max-w-2xl">
-            Explore premium properties in top locations with our expert real Nestora services tailored to your needs.
+
+          <p className="text-gray-200 text-lg md:text-xl mb-8 max-w-2xl font-light leading-relaxed">
+            {cms.heroDescription}
           </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 mb-12">
-            <Button 
-              className="bg-Nestora-blue hover:bg-Nestora-accent text-white rounded-full px-8 py-6 text-base"
-              onClick={() => scrollToSection('properties')}
-            >
-              Explore Properties <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-            <Button 
-              variant="outline" 
-              className="bg-white bg-opacity-10 backdrop-blur-sm hover:bg-opacity-20 text-white border-white border-opacity-20 rounded-full px-8 py-6 text-base"
-              onClick={() => scrollToSection('services')}
-            >
-              Learn More
-            </Button>
+
+          <div className="flex flex-wrap gap-4 items-center">
+            {cms.ctaButtons.map((btn, i) => {
+              if (btn.variant === 'whatsapp') {
+                return (
+                  <a
+                    key={i}
+                    href={whatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full sm:w-auto"
+                  >
+                    <Button className="bg-green-600 hover:bg-green-700 text-white rounded-full px-6 py-6 text-base w-full flex items-center justify-center gap-2">
+                      <Phone size={18} />
+                      {btn.label}
+                    </Button>
+                  </a>
+                );
+              }
+              if (btn.variant === 'primary') {
+                return (
+                  <Link key={i} to={btn.href}>
+                    <Button className="bg-Nestora-blue hover:bg-Nestora-accent text-white rounded-full px-8 py-6 text-base shadow-lg transition-transform hover:-translate-y-0.5">
+                      {btn.label} <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                  </Link>
+                );
+              }
+              return (
+                <Link key={i} to={btn.href}>
+                  <Button
+                    variant="outline"
+                    className="bg-white bg-opacity-10 backdrop-blur-sm hover:bg-white hover:text-Nestora-dark text-white border-white border-opacity-30 rounded-full px-8 py-6 text-base transition-transform hover:-translate-y-0.5"
+                  >
+                    {btn.label}
+                  </Button>
+                </Link>
+              );
+            })}
+
+            {/* Fallback: show WhatsApp if settings has phone and no whatsapp button in CMS */}
+            {whatsappActive &&
+              !cms.ctaButtons.some((b) => b.variant === 'whatsapp') && (
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full sm:w-auto"
+                >
+                  <Button className="bg-green-600 hover:bg-green-700 text-white rounded-full px-6 py-6 text-base w-full flex items-center justify-center gap-2">
+                    <Phone size={18} />
+                    WhatsApp Enquiry
+                  </Button>
+                </a>
+              )}
           </div>
         </div>
       </div>

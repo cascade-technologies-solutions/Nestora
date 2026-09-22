@@ -72,6 +72,10 @@ export default {
 					light: '#F6F6F7',
 					muted: '#8A898C',
 					accent: '#0EA5E9',
+				},
+				slate: {
+					850: '#182235',
+					855: '#111927',
 				}
 			},
 			borderRadius: {

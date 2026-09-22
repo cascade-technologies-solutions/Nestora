@@ -141,8 +141,8 @@ const LocalityCard = ({ locality, isVisible, delay }: LocalityCardProps) => {
   const navigate = useNavigate();
 
   const handleViewLocality = () => {
-    // Navigate to properties page with location filter
-    navigate(`/properties?location=${locality.name}`);
+    // Navigate to real-estate page with location filter
+    navigate(`/real-estate?location=${locality.name}`);
   };
 
   return (
@@ -151,7 +151,7 @@ const LocalityCard = ({ locality, isVisible, delay }: LocalityCardProps) => {
         "group relative overflow-hidden rounded-xl h-80 transition-all duration-700",
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
       )}
-      style={{ transitionDelay: `₹{delay}ms` }}
+      style={{ transitionDelay: `${delay}ms` }}
     >
       {/* Background Image */}
       <div className="absolute inset-0 img-hover-zoom">
@@ -175,7 +175,7 @@ const LocalityCard = ({ locality, isVisible, delay }: LocalityCardProps) => {
           <Button 
             className="bg-white hover:bg-gray-100 text-Nestora-dark rounded-full w-10 h-10 p-0 flex items-center justify-center"
             onClick={handleViewLocality}
-            aria-label={`View ₹{locality.name}`}
+            aria-label={`View ${locality.name}`}
           >
             <ArrowRight className="h-5 w-5" />
           </Button>
