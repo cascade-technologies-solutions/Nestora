@@ -62,7 +62,7 @@ const Services = () => {
             Our Services
           </Badge>
           <h2 className={cn(
-            "text-3xl md:text-4xl font-bold mb-4 transition-all duration-700 delay-100",
+            "text-3xl md:text-5xl font-extrabold font-display mb-6 transition-all text-Nestora-dark duration-700 delay-100",
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
           )}>
             Complete Solutions. One Trusted Team.
@@ -75,7 +75,7 @@ const Services = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {servicesList.map((service, index) => (
             <ServiceCard 
               key={service.id} 
@@ -88,8 +88,8 @@ const Services = () => {
 
         <div className="text-center mt-12">
           <Link to="/services">
-            <Button className="bg-Nestora-blue hover:bg-Nestora-blue/90 text-white rounded-full px-8 py-6">
-              Learn More About Services
+            <Button className="bg-Nestora-blue hover:bg-Nestora-blue/90 text-white rounded-full px-8 py-6 text-base shadow-md">
+              View All Services
             </Button>
           </Link>
         </div>
@@ -105,32 +105,54 @@ interface ServiceCardProps {
 }
 
 const ServiceCard = ({ service, isVisible, delay }: ServiceCardProps) => {
-  const { title, description, icon, color } = service;
-  const Icon = iconMap[icon] || Wrench;
+  const { title, description, image, color } = service;
+  
+  // Mapping titles to suitable fallback visual imagery
+  const fallbackImages: Record<string, string> = {
+    'Construction': 'https://images.unsplash.com/photo-1541888081622-19e34c2084c7?auto=format&fit=crop&q=80',
+    'Renovation': 'https://images.unsplash.com/photo-1581094288338-2314dddb7ecc?auto=format&fit=crop&q=80',
+    'Repair Works': 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80',
+    'Waterproofing': 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&q=80',
+    'Fabrication': 'https://images.unsplash.com/photo-1502444330042-d1a1ddf9bb5b?auto=format&fit=crop&q=80',
+    'Earthworks': 'https://images.unsplash.com/photo-1578595460228-56eb0d1ae00b?auto=format&fit=crop&q=80',
+    'Real Estate': 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&q=80',
+  };
+  
+  const visualImage = image || fallbackImages[title] || 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&q=80';
+
+  // Ensure soft colored background by providing a very light tint
+  // For standard colors, we use bg-slate-50 if it's undefined
+  const bgClass = color ? color.replace('500', '50').replace('600', '50') : 'bg-slate-50';
 
   return (
     <div 
       className={cn(
-        "bg-white rounded-xl p-6 hover:shadow-md transition-all duration-500 border border-gray-100 flex flex-col justify-between h-full",
+        "rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-500 border border-gray-100 flex flex-col justify-between h-full group",
+        bgClass,
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
       )}
       style={{ transitionDelay: `${delay}ms` }}
     >
       <div>
-        <div className={`w-12 h-12 ${color} rounded-lg flex items-center justify-center mb-5`}>
-          <Icon className="h-6 w-6 text-white" />
+        <div className="h-56 overflow-hidden relative">
+          <img 
+            src={visualImage} 
+            alt={title} 
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+          />
         </div>
-        <h3 className="text-xl font-bold mb-3 text-Nestora-dark">{title}</h3>
-        <p className="text-gray-600 mb-6 text-sm leading-relaxed">{description}</p>
+        <div className="p-8 pb-4">
+          <h3 className="text-2xl font-extrabold mb-3 text-Nestora-dark font-display">{title}</h3>
+          <p className="text-gray-600 text-sm leading-relaxed">{description}</p>
+        </div>
       </div>
-      <Link to="/services">
-        <Button 
-          variant="link" 
-          className="p-0 h-auto text-Nestora-blue hover:text-Nestora-accent group w-fit justify-start"
-        >
-          Explore Details <ArrowRight className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-        </Button>
-      </Link>
+      <div className="px-8 pb-8 pt-4">
+        <Link to={`/services#${service.id}`} className="inline-block">
+          <div className="w-12 h-12 rounded-full bg-white border border-gray-200 flex items-center justify-center text-Nestora-blue group-hover:bg-Nestora-accent group-hover:text-Nestora-dark group-hover:border-transparent transition-all shadow-sm">
+             <ArrowRight className="h-5 w-5" />
+          </div>
+        </Link>
+      </div>
     </div>
   );
 };

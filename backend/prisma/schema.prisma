@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Employee {
+  id           String      @id @default(uuid())
+  name         String
+  username     String      @unique
+  role         String
+  status       String
+  passwordHash String
+  lastLogin    DateTime?
+  createdAt    DateTime    @default(now())
+  AuditLogs    AuditLog[]
+}
+
+model Property {
+  id             String    @id @default(uuid())
+  propertyCode   String    @unique
+  title          String
+  price          String
+  address        String
+  beds           Int
+  baths          Int
+  sqft           Int
+  type           String
+  category       String
+  isNew          Boolean
+  image          String
+  status         String
+  featured       Boolean
+  assignedAdmin  String?
+  amenities      String[]
+  seoTitle       String?
+  seoDescription String?
+  seoKeywords    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  title       String
+  category    String
+  location    String
+  status      String
+  description String
+  image       String
+  beforeImage String?
+  afterImage  String?
+  gallery     String[]
+  featured    Boolean
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Service {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  icon        String
+  color       String
+  enabled     Boolean
+  order       Int
+  image       String?
+  workTypes   String[]
+}
+
+model MediaAsset {
+  id        String   @id @default(uuid())
+  name      String
+  url       String
+  size      Int
+  createdAt DateTime @default(now())
+}
+
+model Settings {
+  id                   String   @id @default(uuid())
+  companyName          String
+  logoUrl              String
+  phone                String
+  email                String
+  address              String
+  whatsapp             String
+  whatsappCommunityUrl String
+  facebook             String?
+  instagram            String?
+  linkedin             String?
+  twitter              String?
+  footerTagline        String
+  updatedAt            DateTime @updatedAt
+}
+
+model Enquiry {
+  id            String    @id @default(uuid())
+  type          String
+  name          String
+  email         String
+  phone         String
+  message       String
+  propertyId    String?
+  serviceId     String?
+  status        String
+  priority      String
+  assignedTo    String?
+  internalNotes String?
+  followUpDate  DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model AuditLog {
+  id          String    @id @default(uuid())
+  employeeId  String
+  employee    Employee  @relation(fields: [employeeId], references: [id])
+  action      String
+  module      String
+  timestamp   DateTime  @default(now())
+}

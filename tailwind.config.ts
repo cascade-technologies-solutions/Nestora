@@ -67,11 +67,11 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				Nestora: {
-					blue: 'rgb(42 23 120)',
-					dark: '#1A1F2C',
-					light: '#F6F6F7',
-					muted: '#8A898C',
-					accent: '#0EA5E9',
+					blue: '#1D4ED8', // Corporate Blue
+					dark: '#0F172A', // Deep Navy
+					light: '#F8FAFC', // Light Neutral
+					muted: '#64748B', // Neutral Gray
+					accent: '#F59E0B', // Warm Yellow / Gold
 				},
 				slate: {
 					850: '#182235',

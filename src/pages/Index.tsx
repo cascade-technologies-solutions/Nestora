@@ -4,6 +4,7 @@ import Hero from '@/components/Hero';
 import Services from '@/components/Services';
 import Footer from '@/components/Footer';
 import PropertyDetails from '@/components/PropertyDetails';
+import ProjectDetails from '@/components/ProjectDetails';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -18,13 +19,7 @@ import {
   CheckCircle2, 
   MapPin, 
   ArrowRight, 
-  MessageSquare, 
-  Phone, 
-  Clock, 
-  ShieldCheck, 
-  Users, 
-  MessageCircle,
-  Building,
+  Phone,
   Heart
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -32,18 +27,18 @@ import { useWishlist, WishlistProperty } from '@/contexts/WishlistContext';
 import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
-  const [isVisible, setIsVisible] = useState(false);
   const [properties, setProperties] = useState<AdminProperty[]>([]);
   const [projectsList, setProjectsList] = useState<AdminProject[]>([]);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
   const [homepageCMS, setHomepageCMS] = useState<HomepageCMS | null>(null);
   const [selectedProperty, setSelectedProperty] = useState<AdminProperty | null>(null);
   const [isPropertyDetailsOpen, setIsPropertyDetailsOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<AdminProject | null>(null);
+  const [isProjectDetailsOpen, setIsProjectDetailsOpen] = useState(false);
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
   const { toast } = useToast();
 
   useEffect(() => {
-    setIsVisible(true);
     window.scrollTo(0, 0);
     propertyRepository.getPublished().then(setProperties);
     settingsRepository.get().then(setSettings);
@@ -83,138 +78,68 @@ const Index = () => {
     : '#';
 
   return (
-    <div className="min-h-screen bg-white overflow-hidden">
+    <div className="min-h-screen bg-white overflow-hidden text-Nestora-dark font-sans">
       <Header />
       
       <main>
         {/* SECTION 1 — HERO */}
         <Hero />
 
-        {/* SECTION 2 — COMPANY INTRODUCTION */}
-        <section className="py-20 bg-white">
+        {/* SECTION 2 — CORE SERVICES */}
+        <Services />
+
+        {/* SECTION 3 — ABOUT COMPANY */}
+        <section className="py-24 bg-white border-b border-gray-100">
           <div className="max-w-7xl mx-auto px-6 md:px-12">
-            <div className="grid md:grid-cols-12 gap-12 items-center">
-              <div className="md:col-span-7 space-y-6">
-                <Badge className="bg-Nestora-blue/10 text-Nestora-blue hover:bg-Nestora-blue/20">
-                  Company Introduction
-                </Badge>
-                <h2 className="text-3xl md:text-4xl font-bold font-display text-Nestora-dark">
-                  {homepageCMS?.aboutHeading || "Complete Solutions. One Trusted Team."}
-                </h2>
-                <p className="text-gray-600 leading-relaxed">
-                  {homepageCMS?.aboutText1 || "Nestora handles multi-service technical works across renovation, repair, construction, waterproofing, metal fabrication, earthmoving, and property support services. We offer complete project execution and property assistance under one roof, backed by an execution-focused engineering team."}
-                </p>
-                <p className="text-gray-600 leading-relaxed font-light">
-                  {homepageCMS?.aboutText2 || "We eliminate coordination challenges by unifying construction management, quality-oriented material selections, and municipal process assistance, ensuring your project is completed with transparency."}
-                </p>
-                <div className="pt-2">
-                  <Link to="/about">
-                    <Button className="bg-Nestora-blue hover:bg-Nestora-blue/90 text-white rounded-full">
-                      Learn More About Us <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-              <div className="md:col-span-5 rounded-2xl overflow-hidden shadow-lg h-96">
+            <div className="grid md:grid-cols-2 gap-16 items-center">
+              <div className="order-2 md:order-1 rounded-none overflow-hidden shadow-2xl h-[500px] border border-gray-100">
                 <img 
                   src={homepageCMS?.aboutImage || "https://images.unsplash.com/photo-1581094288338-2314dddb7ecc?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"} 
                   alt="Engineering coordination on site" 
                   className="w-full h-full object-cover"
                 />
               </div>
-            </div>
-          </div>
-        </section>
-
-        {/* SECTION 3 — SERVICES */}
-        <Services />
-
-        {/* SECTION 4 — WHY CHOOSE US */}
-        <section className="py-20 bg-gray-50 border-t border-b border-gray-100">
-          <div className="max-w-7xl mx-auto px-6 md:px-12">
-            <div className="text-center max-w-3xl mx-auto mb-16">
-              <Badge className="bg-Nestora-blue/10 text-Nestora-blue">Why Choose Us</Badge>
-              <h2 className="text-3xl md:text-4xl font-bold text-Nestora-dark mt-4">Why Clients Trust Nestora</h2>
-              <p className="text-gray-500 mt-2">
-                We combine structural expertise, site management, and localized operational processes to deliver projects without delays.
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <div className="bg-white p-8 rounded-xl border border-gray-100 shadow-subtle">
-                <h3 className="text-xl font-bold mb-3 text-Nestora-dark flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-blue-600 flex-shrink-0" />
-                  Multiple Services Under One Roof
-                </h3>
-                <p className="text-gray-500 text-sm leading-relaxed">
-                  Say goodbye to juggling multiple contractors. We manage construction, structural waterproofing, custom metal fabrication, site levelling, and official works.
-                </p>
-              </div>
-
-              <div className="bg-white p-8 rounded-xl border border-gray-100 shadow-subtle">
-                <h3 className="text-xl font-bold mb-3 text-Nestora-dark flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-blue-600 flex-shrink-0" />
-                  Execution-Focused Team
-                </h3>
-                <p className="text-gray-500 text-sm leading-relaxed">
-                  Our division leads and site supervisors coordinate with client engineers to execute tasks strictly according to safety and design standards.
-                </p>
-              </div>
-
-              <div className="bg-white p-8 rounded-xl border border-gray-100 shadow-subtle">
-                <h3 className="text-xl font-bold mb-3 text-Nestora-dark flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-blue-600 flex-shrink-0" />
-                  Transparent Communication
-                </h3>
-                <p className="text-gray-500 text-sm leading-relaxed">
-                  We supply milestone-based documentation, billing transparencies, and routine onsite updates so you always remain in the loop.
-                </p>
-              </div>
-
-              <div className="bg-white p-8 rounded-xl border border-gray-100 shadow-subtle">
-                <h3 className="text-xl font-bold mb-3 text-Nestora-dark flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-blue-600 flex-shrink-0" />
-                  Quality-Oriented Work
-                </h3>
-                <p className="text-gray-500 text-sm leading-relaxed">
-                  From choosing waterproofing chemical layers to structural steel framing grades, we follow rigorous technical specifications.
-                </p>
-              </div>
-
-              <div className="bg-white p-8 rounded-xl border border-gray-100 shadow-subtle">
-                <h3 className="text-xl font-bold mb-3 text-Nestora-dark flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-blue-600 flex-shrink-0" />
-                  End-to-End Project Support
-                </h3>
-                <p className="text-gray-500 text-sm leading-relaxed">
-                  We stand by you from first requirements discussion and layout blueprints, through excavation and fabrication, to municipal documentation.
-                </p>
-              </div>
-
-              <div className="bg-white p-8 rounded-xl border border-gray-100 shadow-subtle">
-                <h3 className="text-xl font-bold mb-3 text-Nestora-dark flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-blue-600 flex-shrink-0" />
-                  Local Project Understanding
-                </h3>
-                <p className="text-gray-500 text-sm leading-relaxed">
-                  We understand regional soil conditions, local rain patterns (essential for waterproofing), material supply networks, and local processes.
-                </p>
+              <div className="order-1 md:order-2 space-y-8">
+                <div>
+                  <Badge className="bg-Nestora-dark text-Nestora-accent tracking-widest uppercase mb-4 text-xs font-bold rounded-none px-3 py-1">
+                    About Nestora
+                  </Badge>
+                  <h2 className="text-4xl md:text-5xl font-extrabold font-display leading-tight text-Nestora-dark">
+                    {homepageCMS?.aboutHeading || "Complete Solutions. One Trusted Team."}
+                  </h2>
+                </div>
+                
+                <div className="space-y-4">
+                  <p className="text-gray-600 text-lg leading-relaxed">
+                    {homepageCMS?.aboutText1 || "Nestora handles multi-service technical works across renovation, repair, construction, waterproofing, metal fabrication, earthmoving, and property support services. We offer complete project execution and property assistance under one roof, backed by an execution-focused engineering team."}
+                  </p>
+                  <p className="text-gray-500 leading-relaxed">
+                    {homepageCMS?.aboutText2 || "We eliminate coordination challenges by unifying construction management, quality-oriented material selections, and municipal process assistance, ensuring your project is completed with transparency."}
+                  </p>
+                </div>
+                
+                <div className="pt-4 border-t border-gray-100">
+                  <Link to="/about">
+                    <Button className="bg-Nestora-blue hover:bg-blue-800 text-white rounded-none px-8 py-6 font-bold uppercase tracking-wider text-sm transition-transform hover:-translate-y-1 shadow-md">
+                      Learn More About Us <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* SECTION 5 — FEATURED PROJECTS */}
-        <section className="py-20 bg-white">
+        {/* SECTION 4 — FEATURED PROJECTS */}
+        <section className="py-24 bg-gray-50">
           <div className="max-w-7xl mx-auto px-6 md:px-12">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12">
-              <div>
-                <Badge className="bg-Nestora-blue/10 text-Nestora-blue">Featured Works</Badge>
-                <h2 className="text-3xl md:text-4xl font-bold text-Nestora-dark mt-4">Our Recent Engineering Works</h2>
-                <p className="text-gray-500 mt-2">Check out our latest construction, waterproofing, and renovation projects.</p>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-6">
+              <div className="max-w-2xl">
+                <h2 className="text-4xl md:text-5xl font-extrabold font-display text-Nestora-dark">Featured Projects</h2>
+                <p className="text-gray-500 mt-4 text-lg">Excellence in construction, renovation, and structural engineering across our latest portfolio.</p>
               </div>
-              <Link to="/projects" className="mt-4 md:mt-0">
-                <Button variant="outline" className="border-Nestora-blue text-Nestora-blue hover:bg-Nestora-blue/5 rounded-full">
+              <Link to="/projects">
+                <Button variant="outline" className="border-Nestora-dark text-Nestora-dark hover:bg-Nestora-dark hover:text-white rounded-none font-bold uppercase tracking-wide px-6 py-6 transition-colors">
                   View All Projects <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
@@ -222,36 +147,38 @@ const Index = () => {
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {projectsList.slice(0, 3).map((project) => (
-                <div key={project.id} className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-subtle flex flex-col justify-between h-full hover:shadow-md transition-shadow">
-                  <div>
-                    <div className="h-48 overflow-hidden relative">
-                      <img src={project.image} alt={project.title} className="w-full h-full object-cover" />
-                      <div className="absolute top-3 left-3">
-                        <Badge className="bg-Nestora-dark/80 text-white uppercase text-xs tracking-wider border-none px-2 py-0.5">
-                          {project.category}
-                        </Badge>
-                      </div>
-                      <div className="absolute top-3 right-3">
-                        <Badge className="bg-green-600 text-white text-xs border-none px-2 py-0.5">
-                          {project.status}
-                        </Badge>
-                      </div>
-                    </div>
-                    <div className="p-6">
-                      <h3 className="text-lg font-bold text-Nestora-dark mb-1 leading-snug">{project.title}</h3>
-                      <div className="flex items-center text-gray-400 text-xs mb-3">
-                        <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
-                        <span>{project.location}</span>
-                      </div>
-                      <p className="text-gray-600 text-xs leading-relaxed line-clamp-3">{project.description}</p>
+                <div 
+                  key={project.id} 
+                  className="bg-white rounded-none overflow-hidden group shadow-lg border border-gray-200 cursor-pointer flex flex-col h-full"
+                  onClick={() => {
+                    setSelectedProject(project);
+                    setIsProjectDetailsOpen(true);
+                  }}
+                >
+                  <div className="h-64 overflow-hidden relative">
+                    <img src={project.image} alt={project.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                    <div className="absolute top-4 left-4 flex gap-2">
+                      <Badge className="bg-Nestora-dark text-Nestora-accent uppercase text-xs font-bold tracking-wider rounded-none px-3 py-1">
+                        {project.category}
+                      </Badge>
+                      <Badge className="bg-white text-Nestora-dark uppercase text-xs font-bold tracking-wider rounded-none px-3 py-1">
+                        {project.status}
+                      </Badge>
                     </div>
                   </div>
-                  <div className="px-6 pb-6">
-                    <Link to="/contact">
-                      <Button variant="outline" size="sm" className="w-full border-Nestora-blue/20 text-Nestora-blue text-xs hover:bg-Nestora-blue/5">
-                        Enquire About Similar Project
-                      </Button>
-                    </Link>
+                  <div className="p-8">
+                    <div className="flex items-center text-Nestora-blue font-bold text-xs uppercase tracking-wider mb-3">
+                      <MapPin className="h-4 w-4 mr-1" />
+                      <span>{project.location}</span>
+                    </div>
+                    <h3 className="text-2xl font-extrabold font-display text-Nestora-dark mb-4 group-hover:text-Nestora-blue transition-colors line-clamp-2 leading-tight">
+                      {project.title}
+                    </h3>
+                    <div className="pt-6 mt-auto border-t border-gray-100 flex items-center justify-between pointer-events-none">
+                      <div className="text-sm font-bold text-Nestora-dark uppercase tracking-wider flex items-center w-full group-hover:justify-between transition-all">
+                        View Project Details <ArrowRight className="ml-2 h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -259,20 +186,19 @@ const Index = () => {
           </div>
         </section>
 
-        {/* SECTION 6 — REAL ESTATE */}
-        <section className="py-20 bg-gray-50 border-t border-b border-gray-100">
+        {/* SECTION 5 — REAL ESTATE */}
+        <section className="py-24 bg-white border-t border-gray-100">
           <div className="max-w-7xl mx-auto px-6 md:px-12">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12">
-              <div>
-                <Badge className="bg-Nestora-blue/10 text-Nestora-blue">Property Division</Badge>
-                <h2 className="text-3xl md:text-4xl font-bold text-Nestora-dark mt-4">Explore Property Opportunities</h2>
-                <p className="text-gray-500 mt-2">
-                  Browse verified listings, commercial layouts, and plot sites managed under our property division.
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-6">
+              <div className="max-w-2xl">
+                <h2 className="text-4xl md:text-5xl font-extrabold font-display text-Nestora-dark">Real Estate Properties</h2>
+                <p className="text-gray-500 mt-4 text-lg">
+                  Browse verified listings, commercial spaces, and premium sites managed by our property division.
                 </p>
               </div>
-              <Link to="/real-estate" className="mt-4 md:mt-0">
-                <Button className="bg-Nestora-blue hover:bg-Nestora-blue/90 text-white rounded-full">
-                  Explore Real Estate <ArrowRight className="ml-2 h-4 w-4" />
+              <Link to="/real-estate">
+                <Button className="bg-Nestora-blue hover:bg-blue-800 text-white rounded-none font-bold uppercase tracking-wide px-8 py-6 transition-transform hover:-translate-y-1 shadow-md">
+                  Explore Properties <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
             </div>
@@ -283,43 +209,51 @@ const Index = () => {
                 return (
                   <div 
                     key={property.id} 
-                    className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-subtle hover:shadow-md transition-shadow cursor-pointer flex flex-col justify-between"
+                    className="bg-gray-50 rounded-none overflow-hidden border border-gray-200 shadow-md hover:shadow-xl transition-all cursor-pointer group"
                     onClick={() => handlePropertyClick(property)}
                   >
-                    <div>
-                      <div className="h-48 overflow-hidden relative">
-                        <img src={property.image} alt={property.title} className="w-full h-full object-cover" />
-                        <div className="absolute top-3 left-3 flex gap-1">
-                          <Badge className="bg-Nestora-blue text-white text-xs border-none uppercase tracking-wide">
-                            {property.type}
-                          </Badge>
-                          <Badge className="bg-gray-800 text-white text-xs border-none uppercase tracking-wide">
-                            {property.category}
-                          </Badge>
-                        </div>
-                        <button 
-                          className={cn(
-                            "absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center shadow-sm",
-                            isFavorite ? "bg-red-500 text-white" : "bg-white text-gray-600 hover:bg-gray-100"
-                          )}
-                          onClick={(e) => handleToggleWishlist(e, property)}
-                        >
-                          <Heart className="h-4 w-4" fill={isFavorite ? "currentColor" : "none"} />
-                        </button>
+                    <div className="h-64 overflow-hidden relative">
+                      <img src={property.image} alt={property.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                      <div className="absolute top-4 left-4 flex flex-col gap-2">
+                        <Badge className="bg-Nestora-blue text-white uppercase text-xs font-bold tracking-wider rounded-none px-3 py-1 w-max">
+                          {property.type}
+                        </Badge>
+                        <Badge className="bg-Nestora-dark text-white uppercase text-xs font-bold tracking-wider rounded-none px-3 py-1 w-max">
+                          {property.category}
+                        </Badge>
                       </div>
-                      <div className="p-5">
-                        <h3 className="text-base font-bold text-Nestora-dark line-clamp-1">{property.title}</h3>
-                        <div className="flex items-center text-gray-400 text-xs mb-3 mt-1">
-                          <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
-                          <span className="truncate">{property.address}</span>
-                        </div>
-                        <div className="text-Nestora-blue font-bold text-lg">{property.price}</div>
-                      </div>
+                      <button 
+                        className={cn(
+                          "absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110",
+                          isFavorite ? "bg-red-500 text-white" : "bg-white text-Nestora-dark hover:bg-gray-100"
+                        )}
+                        onClick={(e) => handleToggleWishlist(e, property)}
+                      >
+                        <Heart className="h-5 w-5" fill={isFavorite ? "currentColor" : "none"} />
+                      </button>
                     </div>
-                    <div className="px-5 pb-5 pt-2 border-t border-gray-50 flex justify-between text-xs text-gray-400">
-                      <span>{property.beds} Bed{property.beds !== 1 ? 's' : ''}</span>
-                      <span>{property.baths} Bath{property.baths !== 1 ? 's' : ''}</span>
-                      <span>{property.sqft} sqft</span>
+                    <div className="p-6">
+                      <div className="text-Nestora-blue font-extrabold text-xl mb-2">{property.price}</div>
+                      <h3 className="text-lg font-bold font-display text-Nestora-dark line-clamp-1 mb-2 group-hover:text-Nestora-blue transition-colors">{property.title}</h3>
+                      <div className="flex items-center text-gray-500 text-sm mb-6">
+                        <MapPin className="h-4 w-4 mr-2 text-gray-400" />
+                        <span className="truncate">{property.address}</span>
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-200">
+                        <div className="text-center">
+                          <span className="block text-Nestora-dark font-bold">{property.beds}</span>
+                          <span className="text-xs text-gray-500 uppercase tracking-widest">Beds</span>
+                        </div>
+                        <div className="text-center border-l border-r border-gray-200">
+                          <span className="block text-Nestora-dark font-bold">{property.baths}</span>
+                          <span className="text-xs text-gray-500 uppercase tracking-widest">Baths</span>
+                        </div>
+                        <div className="text-center">
+                          <span className="block text-Nestora-dark font-bold">{property.sqft}</span>
+                          <span className="text-xs text-gray-500 uppercase tracking-widest">Sqft</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 );
@@ -328,93 +262,70 @@ const Index = () => {
           </div>
         </section>
 
-        {/* SECTION 7 — WORK PROCESS */}
-        <section className="py-20 bg-white">
+        {/* SECTION 6 — WHY CHOOSE US */}
+        <section className="py-24 bg-Nestora-dark text-white">
           <div className="max-w-7xl mx-auto px-6 md:px-12">
-            <div className="text-center max-w-3xl mx-auto mb-16">
-              <Badge className="bg-Nestora-blue/10 text-Nestora-blue">Project Workflow</Badge>
-              <h2 className="text-3xl md:text-4xl font-bold text-Nestora-dark mt-4">Simple Project Process</h2>
-              <p className="text-gray-500 mt-2">
-                We handle our engineering, fabrication, and structural works through a systematic 5-step operational pipeline.
-              </p>
+            <div className="mb-16 md:flex justify-between items-end">
+              <div className="md:w-1/2">
+                <Badge className="bg-white/10 text-Nestora-accent tracking-widest uppercase mb-4 text-xs font-bold rounded-none px-3 py-1">
+                  Why Choose Nestora
+                </Badge>
+                <h2 className="text-4xl md:text-5xl font-extrabold font-display leading-tight mb-6">Built on Quality,<br/>Driven by Trust.</h2>
+              </div>
+              <div className="md:w-1/2">
+                <p className="text-gray-300 text-lg leading-relaxed">
+                  We combine structural expertise, site management, and localized operational processes to deliver projects on time and without compromise.
+                </p>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-6 relative">
-              <ProcessStep 
-                num="1" 
-                title="Discuss Requirement" 
-                desc="Initial client consultation to scope out works, blueprints, and general budgets."
-              />
-              <ProcessStep 
-                num="2" 
-                title="Site Visit &amp; Assessment" 
-                desc="Physical inspection of site layout, structural cracks, seepage depths, or boundary lines."
-              />
-              <ProcessStep 
-                num="3" 
-                title="Planning &amp; Proposal" 
-                desc="Coordinating engineering drafts, materials specifications, milestone sheets, and transparent proposals."
-              />
-              <ProcessStep 
-                num="4" 
-                title="Execution" 
-                desc="Engaging construction crews, waterproofing layers application, or structural fabrication under engineering guidance."
-              />
-              <ProcessStep 
-                num="5" 
-                title="Project Completion" 
-                desc="Quality verification, site clearances, official documentation coordination, and project handover."
-              />
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-16 mt-20">
+              <div className="border-t border-gray-700 pt-6">
+                <CheckCircle2 className="h-8 w-8 text-Nestora-accent mb-6" />
+                <h3 className="text-xl font-bold font-display mb-3">Multi-Service Solutions</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  Say goodbye to juggling contractors. We manage construction, structural waterproofing, custom fabrication, and site levelling.
+                </p>
+              </div>
+
+              <div className="border-t border-gray-700 pt-6">
+                <CheckCircle2 className="h-8 w-8 text-Nestora-accent mb-6" />
+                <h3 className="text-xl font-bold font-display mb-3">Execution-Focused Team</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  Our division leads and site supervisors coordinate with engineers to execute tasks strictly according to safety and design standards.
+                </p>
+              </div>
+
+              <div className="border-t border-gray-700 pt-6">
+                <CheckCircle2 className="h-8 w-8 text-Nestora-accent mb-6" />
+                <h3 className="text-xl font-bold font-display mb-3">Transparent Communication</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  We supply milestone documentation, billing transparencies, and routine onsite updates so you always remain in the loop.
+                </p>
+              </div>
+              
+              <div className="border-t border-gray-700 pt-6">
+                <CheckCircle2 className="h-8 w-8 text-Nestora-accent mb-6" />
+                <h3 className="text-xl font-bold font-display mb-3">Quality Construction</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  From chemical waterproofing layers to structural steel grades, we follow rigorous technical specifications.
+                </p>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* SECTION 8 — WHATSAPP COMMUNITY */}
-        <section className="py-16 bg-Nestora-dark text-white">
-          <div className="max-w-5xl mx-auto px-6 text-center space-y-6">
-            <div className="bg-white/10 rounded-full p-3 max-w-fit mx-auto">
-              <MessageCircle className="h-8 w-8 text-green-400" />
-            </div>
-            <h2 className="text-3xl font-bold font-display">Stay Connected With Us</h2>
-            <p className="text-gray-300 max-w-xl mx-auto font-light text-sm md:text-base">
-              Join our WhatsApp community for project updates, property opportunities and company announcements.
-            </p>
-            
-            <div className="pt-2">
-              {(settings?.whatsappCommunityUrl || CONFIG.WHATSAPP_COMMUNITY_URL) ? (
-                <a 
-                  href={settings?.whatsappCommunityUrl || CONFIG.WHATSAPP_COMMUNITY_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Button className="bg-green-600 hover:bg-green-700 text-white rounded-full px-8 py-6 flex items-center justify-center gap-2 mx-auto">
-                    <MessageSquare size={18} />
-                    Join WhatsApp Community
-                  </Button>
-                </a>
-              ) : (
-                <Button 
-                  disabled
-                  className="bg-gray-800 text-gray-400 rounded-full px-8 py-6 cursor-not-allowed mx-auto block"
-                >
-                  Community Coming Soon
-                </Button>
-              )}
-            </div>
-          </div>
-        </section>
-
-        {/* SECTION 9 — FINAL CTA */}
-        <section className="py-20 bg-gray-50 border-t border-gray-100">
-          <div className="max-w-4xl mx-auto px-6 text-center space-y-6">
-            <h2 className="text-3xl md:text-4xl font-bold font-display text-Nestora-dark">Planning a Project?</h2>
-            <p className="text-gray-500 max-w-xl mx-auto leading-relaxed text-sm md:text-base">
+        {/* SECTION 7 — STRONG FINAL CTA */}
+        <section className="py-24 bg-gray-50 border-t border-gray-200">
+          <div className="max-w-4xl mx-auto px-6 text-center space-y-8">
+            <h2 className="text-5xl font-extrabold font-display text-Nestora-dark leading-tight">Have a Project in Mind?</h2>
+            <p className="text-gray-500 max-w-2xl mx-auto text-xl font-medium">
               Tell us what you're planning. Our team will understand your requirements and help identify the right solution.
             </p>
-            <div className="pt-4 flex justify-center gap-4 flex-wrap">
+            <div className="pt-8 flex flex-col sm:flex-row justify-center gap-6">
               <Link to="/contact">
-                <Button className="bg-Nestora-blue hover:bg-Nestora-blue/90 text-white rounded-full px-8 py-6">
-                  Discuss Your Project
+                <Button className="bg-Nestora-blue hover:bg-blue-800 text-white rounded-none px-10 py-8 font-bold uppercase tracking-wider text-base shadow-xl transition-transform hover:-translate-y-1 w-full sm:w-auto">
+                  Request Enquiry
                 </Button>
               </Link>
               
@@ -424,8 +335,8 @@ const Index = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <Button variant="outline" className="border-green-600 text-green-700 hover:bg-green-50 rounded-full px-8 py-6 flex items-center gap-2">
-                    <Phone size={16} />
+                  <Button variant="outline" className="border-gray-300 text-Nestora-dark hover:bg-gray-100 rounded-none px-10 py-8 font-bold uppercase tracking-wider text-base shadow-sm hover:shadow-md transition-all w-full sm:w-auto flex items-center gap-3">
+                    <Phone size={20} className="text-Nestora-accent" />
                     WhatsApp Us
                   </Button>
                 </a>
@@ -441,21 +352,13 @@ const Index = () => {
         onClose={() => setIsPropertyDetailsOpen(false)}
       />
 
-      <Footer />
-    </div>
-  );
-};
+      <ProjectDetails 
+        project={selectedProject}
+        isOpen={isProjectDetailsOpen}
+        onClose={() => setIsProjectDetailsOpen(false)}
+      />
 
-const ProcessStep = ({ num, title, desc }: { num: string; title: string; desc: string }) => {
-  return (
-    <div className="relative bg-white rounded-xl p-6 border border-gray-100 shadow-subtle flex flex-col justify-between h-full z-10">
-      <div>
-        <div className="w-8 h-8 rounded-full bg-Nestora-blue text-white flex items-center justify-center font-bold text-sm mb-4">
-          {num}
-        </div>
-        <h4 className="font-bold text-sm text-Nestora-dark mb-2 font-display">{title}</h4>
-      </div>
-      <p className="text-gray-500 text-xs leading-relaxed mt-2">{desc}</p>
+      <Footer />
     </div>
   );
 };

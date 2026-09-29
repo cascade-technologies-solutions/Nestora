@@ -8,6 +8,7 @@ import { MapPin, ArrowRight, CheckCircle, Clock, Hammer } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { projectRepository } from '@/admin/repositories/projectRepository';
 import type { AdminProject } from '@/admin/types/admin';
+import ProjectDetails from '@/components/ProjectDetails';
 
 const categories = ['All', 'Construction', 'Renovation', 'Waterproofing', 'Fabrication', 'Earthworks'];
 
@@ -16,6 +17,8 @@ const ProjectsPage = () => {
   const [projects, setProjects] = useState<AdminProject[]>([]);
   const [filteredProjects, setFilteredProjects] = useState<AdminProject[]>([]);
   const [animate, setAnimate] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<AdminProject | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -99,7 +102,14 @@ const ProjectsPage = () => {
                 animate ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
               )}>
                 {filteredProjects.map((project) => (
-                  <ProjectCard key={project.id} project={project} />
+                  <ProjectCard 
+                    key={project.id} 
+                    project={project} 
+                    onClick={() => {
+                      setSelectedProject(project);
+                      setIsDetailsOpen(true);
+                    }}
+                  />
                 ))}
               </div>
             )}
@@ -122,16 +132,30 @@ const ProjectsPage = () => {
         </section>
       </main>
 
+      <ProjectDetails 
+        project={selectedProject} 
+        isOpen={isDetailsOpen} 
+        onClose={() => setIsDetailsOpen(false)} 
+      />
+
       <Footer />
     </div>
   );
 };
 
-const ProjectCard = ({ project }: { project: Project }) => {
+interface ProjectCardProps {
+  project: AdminProject;
+  onClick: () => void;
+}
+
+const ProjectCard = ({ project, onClick }: ProjectCardProps) => {
   const isCompleted = project.status === 'Completed';
 
   return (
-    <div className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-subtle hover:shadow-md transition-all flex flex-col h-full">
+    <div 
+      className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-subtle hover:shadow-md transition-all flex flex-col h-full cursor-pointer"
+      onClick={onClick}
+    >
       <div className="relative h-56 overflow-hidden">
         <img 
           src={project.image} 
@@ -170,12 +194,12 @@ const ProjectCard = ({ project }: { project: Project }) => {
           <p className="text-gray-600 text-sm leading-relaxed mb-6">{project.description}</p>
         </div>
 
-        <Link to="/contact" className="mt-auto">
-          <Button variant="outline" className="w-full border-Nestora-blue/20 text-Nestora-blue hover:bg-Nestora-blue/5 rounded-lg flex items-center justify-center gap-1.5">
+        <div className="mt-auto">
+          <Button variant="outline" className="w-full border-Nestora-blue/20 text-Nestora-blue hover:bg-Nestora-blue/5 rounded-lg flex items-center justify-center gap-1.5 pointer-events-none">
             <Hammer size={14} />
-            Enquire About This Work
+            View Project Details
           </Button>
-        </Link>
+        </div>
       </div>
     </div>
   );

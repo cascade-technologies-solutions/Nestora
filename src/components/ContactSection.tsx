@@ -224,7 +224,7 @@ const ContactSection = () => {
               
               <div className="mt-6 text-center">
                 <p className="text-sm text-gray-500">
-                  By submitting this form, you agree to our <a href="#" className="text-Nestora-blue underline">Terms of Service</a> and <a href="#" className="text-Nestora-blue underline">Privacy Policy</a>.
+                  By submitting this form, you agree to our <span className="text-Nestora-blue">Terms of Service</span> and <span className="text-Nestora-blue">Privacy Policy</span>.
                 </p>
               </div>
             </div>

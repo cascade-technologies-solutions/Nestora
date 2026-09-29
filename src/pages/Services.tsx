@@ -13,8 +13,20 @@ const ServicesPage = () => {
   const [services, setServices] = useState<AdminService[]>([]);
 
   useEffect(() => {
-    window.scrollTo(0, 0);
-    servicesRepository.getEnabled().then(setServices);
+    servicesRepository.getEnabled().then((data) => {
+      setServices(data);
+      setTimeout(() => {
+        if (window.location.hash) {
+          const id = window.location.hash.replace('#', '');
+          const element = document.getElementById(id);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+          }
+        } else {
+          window.scrollTo(0, 0);
+        }
+      }, 100);
+    });
   }, []);
 
   const whatsappActive = isWhatsAppEnabled();

@@ -1,4 +1,4 @@
-import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin } from 'lucide-react';
+import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin, MessageCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { CONFIG } from '@/config';
 import { useState, useEffect } from 'react';
@@ -17,121 +17,88 @@ const Footer = () => {
   const phone = settings?.phone || CONFIG.CONTACT_PHONE;
   const email = settings?.email || CONFIG.CONTACT_EMAIL;
   const address = settings?.address || CONFIG.OFFICE_ADDRESS;
-  const footerTagline = settings?.footerTagline || 'From renovation and waterproofing to construction, fabrication, earthmoving, and real estate – complete engineering and project solutions under one roof.';
-
-  const hasContactInfo = address || phone || email;
+  const whatsappPhone = settings?.whatsapp?.trim() || CONFIG.WHATSAPP_PHONE;
+  
+  const footerTagline = settings?.footerTagline || 'Complete engineering and project solutions under one roof. We build, restore, and develop infrastructure with a focus on quality and transparency.';
 
   return (
     <footer className="bg-Nestora-dark text-white">
-      <div className="max-w-7xl mx-auto px-6 md:px-12 pt-16 pb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-16">
-          {/* Company Information */}
-          <div>
-            <h3 className="text-2xl font-bold font-display mb-6 flex items-center gap-2">
+      <div className="max-w-7xl mx-auto px-6 md:px-12 pt-20 pb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-16 mb-16">
+          
+          {/* Column 1: About Nestora */}
+          <div className="space-y-6">
+            <h3 className="text-2xl font-bold font-display flex items-center gap-2">
               {logoUrl ? (
-                <img src={logoUrl} alt={companyName} className="h-8 w-auto object-contain" />
+                <img src={logoUrl} alt={companyName} className="h-10 w-auto object-contain" />
               ) : (
-                <>
-                  {companyName.endsWith('Hub') ? (
-                    <>
-                      {companyName.slice(0, -3)}<span className="text-Nestora-blue">Hub</span>
-                    </>
-                  ) : (
-                    companyName
-                  )}
-                </>
+                <span className="text-white tracking-wide">
+                  {companyName.toUpperCase()}
+                </span>
               )}
             </h3>
-            <p className="text-gray-400 mb-6 text-sm leading-relaxed">
+            <p className="text-gray-300 text-sm leading-relaxed max-w-sm">
               {footerTagline}
             </p>
-            <div className="flex space-x-4">
-              <SocialIcon href={settings?.socialLinks?.facebook} icon={<Facebook className="h-5 w-5" />} />
-              <SocialIcon href={settings?.socialLinks?.twitter} icon={<Twitter className="h-5 w-5" />} />
-              <SocialIcon href={settings?.socialLinks?.instagram} icon={<Instagram className="h-5 w-5" />} />
-              <SocialIcon href={settings?.socialLinks?.linkedin} icon={<Linkedin className="h-5 w-5" />} />
+            <div className="flex space-x-4 pt-2">
+              <SocialIcon href={settings?.socialLinks?.facebook} icon={<Facebook className="h-4 w-4" />} />
+              <SocialIcon href={settings?.socialLinks?.twitter} icon={<Twitter className="h-4 w-4" />} />
+              <SocialIcon href={settings?.socialLinks?.instagram} icon={<Instagram className="h-4 w-4" />} />
+              <SocialIcon href={settings?.socialLinks?.linkedin} icon={<Linkedin className="h-4 w-4" />} />
             </div>
           </div>
 
-          {/* Quick Links */}
-          <div>
-            <h4 className="text-lg font-semibold mb-6">Quick Links</h4>
-            <ul className="space-y-3">
-              <FooterLink to="/">Home</FooterLink>
-              <FooterLink to="/about">About Us</FooterLink>
-              <FooterLink to="/services">Services</FooterLink>
-              <FooterLink to="/projects">Projects</FooterLink>
-              <FooterLink to="/real-estate">Real Estate</FooterLink>
-              <FooterLink to="/contact">Contact Us</FooterLink>
-            </ul>
-          </div>
-
-          {/* Services */}
-          <div>
-            <h4 className="text-lg font-semibold mb-6">Our Divisions</h4>
-            <ul className="space-y-3">
-              <FooterLink to="/services">Construction Works</FooterLink>
-              <FooterLink to="/services">Renovation & Repair</FooterLink>
-              <FooterLink to="/services">Waterproofing Solutions</FooterLink>
-              <FooterLink to="/services">Fabrication Works</FooterLink>
-              <FooterLink to="/services">Earthmoving & Site Development</FooterLink>
-              <FooterLink to="/services">Real Estate Services</FooterLink>
-              <FooterLink to="/services">Corporation Official Works</FooterLink>
-            </ul>
-          </div>
-
-          {/* Business Hours */}
-          <div>
-            <h4 className="text-lg font-semibold mb-6">Working Hours</h4>
-            <p className="text-gray-400 mb-4 text-sm leading-relaxed">
-              Our engineering, project planning, and support services operate on the following schedule:
-            </p>
-            <div className="space-y-2 text-gray-400 text-sm">
-              <p className="flex justify-between">
-                <span>Monday - Friday:</span>
-                <span>9:00 AM - 6:00 PM</span>
-              </p>
-              <p className="flex justify-between">
-                <span>Saturday:</span>
-                <span>10:00 AM - 4:00 PM</span>
-              </p>
-              <p className="flex justify-between">
-                <span>Sunday:</span>
-                <span>Closed</span>
-              </p>
+          {/* Column 2: Navigation / Services */}
+          <div className="grid grid-cols-2 gap-8">
+            <div className="space-y-6">
+              <h4 className="text-lg font-bold uppercase tracking-wider text-white">Quick Links</h4>
+              <ul className="space-y-3">
+                <FooterLink to="/about">About Us</FooterLink>
+                <FooterLink to="/projects">Our Projects</FooterLink>
+                <FooterLink to="/real-estate">Real Estate</FooterLink>
+                <FooterLink to="/contact">Contact</FooterLink>
+              </ul>
+            </div>
+            <div className="space-y-6">
+              <h4 className="text-lg font-bold uppercase tracking-wider text-white">Services</h4>
+              <ul className="space-y-3">
+                <FooterLink to="/services">Construction</FooterLink>
+                <FooterLink to="/services">Renovation</FooterLink>
+                <FooterLink to="/services">Waterproofing</FooterLink>
+                <FooterLink to="/services">Fabrication</FooterLink>
+              </ul>
             </div>
           </div>
+
+          {/* Column 3: Contact */}
+          <div className="space-y-6">
+            <h4 className="text-lg font-bold uppercase tracking-wider text-white">Contact Info</h4>
+            <div className="space-y-4">
+              {phone && (
+                <ContactItem icon={<Phone className="h-5 w-5" />} text={phone} label="Phone" />
+              )}
+              {whatsappPhone && (
+                <ContactItem icon={<MessageCircle className="h-5 w-5" />} text={whatsappPhone} label="WhatsApp" />
+              )}
+              {email && (
+                <ContactItem icon={<Mail className="h-5 w-5" />} text={email} label="Email" />
+              )}
+              {address && (
+                <ContactItem icon={<MapPin className="h-5 w-5" />} text={address} label="Location" />
+              )}
+            </div>
+          </div>
+
         </div>
 
-        {/* Contact Info Bar (Rendered only if configuration variables are set) */}
-        {hasContactInfo && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-8 border-t border-gray-800">
-            {address ? (
-              <ContactItem icon={<MapPin className="h-5 w-5" />} text={address} />
-            ) : (
-              <div className="hidden md:block"></div>
-            )}
-            {phone ? (
-              <ContactItem icon={<Phone className="h-5 w-5" />} text={phone} />
-            ) : (
-              <div className="hidden md:block"></div>
-            )}
-            {email ? (
-              <ContactItem icon={<Mail className="h-5 w-5" />} text={email} />
-            ) : (
-              <div className="hidden md:block"></div>
-            )}
-          </div>
-        )}
-
         {/* Copyright */}
-        <div className="text-center pt-8 border-t border-gray-800">
-          <p className="text-gray-500 text-sm">
+        <div className="pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-gray-400 text-sm">
             © {new Date().getFullYear()} {companyName}. All rights reserved.
           </p>
-          <div className="flex justify-center space-x-6 mt-4">
-            <a href="#" className="text-gray-500 hover:text-white text-sm">Privacy Policy</a>
-            <a href="#" className="text-gray-500 hover:text-white text-sm">Terms of Service</a>
+          <div className="flex space-x-6 text-sm text-gray-400">
+            <span className="text-gray-400">Privacy Policy</span>
+            <span className="text-gray-400">Terms of Service</span>
           </div>
         </div>
       </div>
@@ -145,7 +112,7 @@ const SocialIcon = ({ icon, href }: { icon: React.ReactNode; href?: string }) =>
       href={href || "#"} 
       target="_blank" 
       rel="noopener noreferrer" 
-      className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-Nestora-blue transition-colors"
+      className="w-9 h-9 rounded-full bg-gray-800 text-Nestora-accent flex items-center justify-center hover:bg-Nestora-accent hover:text-Nestora-dark transition-colors"
     >
       {icon}
     </a>
@@ -157,19 +124,22 @@ const FooterLink = ({ to, children }: { to: string; children: React.ReactNode })
     <li>
       <Link 
         to={to} 
-        className="text-gray-400 hover:text-white transition-colors flex items-center"
+        className="text-gray-300 hover:text-Nestora-accent transition-colors flex items-center text-sm"
       >
-        <span className="mr-2 text-xs">›</span> {children}
+        {children}
       </Link>
     </li>
   );
 };
 
-const ContactItem = ({ icon, text }: { icon: React.ReactNode; text: string }) => {
+const ContactItem = ({ icon, text, label }: { icon: React.ReactNode; text: string; label: string }) => {
   return (
-    <div className="flex items-center text-gray-400">
-      <div className="mr-3 text-Nestora-blue flex-shrink-0">{icon}</div>
-      <span className="text-sm">{text}</span>
+    <div className="flex items-start">
+      <div className="mt-0.5 mr-4 text-Nestora-accent flex-shrink-0">{icon}</div>
+      <div>
+        <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">{label}</p>
+        <p className="text-sm text-white font-medium break-all">{text}</p>
+      </div>
     </div>
   );
 };
