@@ -12,7 +12,7 @@
 | **P7** | Frontend API migration & React Query | #18, #19 | **DONE** | TanStack Query client wired at root. All 9 admin repositories migrated to call live backend endpoints via typed `src/lib/api.ts` with transparent React Query cache invalidations. Public property views (`Index.tsx`, `RealEstate.tsx`, `AllProperties.tsx`, `FeaturedProperties.tsx`) wired to `propertyRepository.getPublished()`. Wishlist synchronized with `/api/v1/wishlist`. `npm run lint` 0 errors, `npm run build` succeeds cleanly in 8.2s. |
 | **P7X**| Admin console UX optimization (low-click) | N/A | **DONE** | 1-click status pipeline buttons in `AdminEnquiries.tsx`, inline status dropdown in `AdminProperties.tsx`, direct 1-click draft publish from `AdminDashboard.tsx`, drag-and-drop dropzone + auto-select in `MediaLibraryModal.tsx`, sticky quick-jump pill bar + bulk save + `Ctrl+S` + `beforeunload` guard in `AdminCMS.tsx`. Lint 0 errors, build succeeds in 8.3s. |
 | **P8** | Data migration (localStorage to PostgreSQL) | #23 | **DONE** | Full migration and disaster recovery system: backend export (`/api/v1/admin/migrate/export`) and import (`/api/v1/admin/migrate/import`) with 10MB payload limit, transactional idempotent upsert of properties, projects, services, enquiries, CMS sections, and settings. Frontend `AdminSettings.tsx` updated with 1-click JSON backup export, browser localStorage scanner/migrator, and file upload restore. Verified 100% via `backend/scripts/verify-p8.ts`. |
-| **P9** | Production deployment artifacts & HOSTING.md | #24 | **PENDING** | |
+| **P9** | Production deployment artifacts & HOSTING.md | #24 | **DONE** | Complete deployment package: multi-stage `backend/Dockerfile` (node:20-alpine, unprivileged user, dumb-init, healthcheck), root `Dockerfile.frontend` & `deploy/nginx/default.conf` (SPA routing, reverse proxy `/api`, aggressive 30d client caching for `/uploads`), root `docker-compose.prod.yml` with host volume mount `./backend/uploads:/app/uploads` ($0 photo fees), `public/.htaccess` for GoDaddy cPanel, and exhaustive `HOSTING.md` runbook (GoDaddy, VPS, PaaS, DB options, backups, pre-flight checklist). |
 | **P10**| Automated tests (backend + E2E), security QA, release gate | #25, #26, #27, #29 | **PENDING** | |
 
 ---
@@ -198,4 +198,29 @@
 - **Verification & Builds**:
   - `npm run lint`: 0 errors.
   - `npm run build`: Production build succeeded in 8.32s.
+
+### Phase P9: Production Deployment Artifacts & Zero-Cost Hosting Runbook
+- **Containerization**:
+  - `backend/Dockerfile`: Multi-stage build (`node:20-alpine` builder + runner), caching layers, non-root user `nestorauser`, `dumb-init` signal handling, health check instruction (`wget http://localhost:4000/api/v1/health`), and `/app/uploads` initialization.
+  - `backend/.dockerignore`: Excludes `node_modules`, `dist`, `.env`, and local upload files.
+  - `Dockerfile.frontend`: Production Nginx Alpine container serving built Vite assets with SPA routing.
+  - `deploy/nginx/default.conf`: Production Nginx config featuring Gzip compression, security headers (nosniff, frame-options), 30-day static asset cache for `/uploads/` directly off the filesystem, reverse proxy `/api/` to backend, and HTML5 SPA fallback.
+  - `docker-compose.prod.yml`: Orchestrates `postgres:16-alpine`, `backend`, and `frontend` with shared bridge network, healthcheck dependencies (`condition: service_healthy`), persistent database volume, and host volume mount `./backend/uploads:/app/uploads` preserving $0 photo storage fees.
+- **GoDaddy / cPanel Shared Hosting Support**:
+  - `public/.htaccess`: Created and copied automatically to `dist/.htaccess` by Vite build. Configured for HTTPS enforcement, `/api/` reverse proxying to Node.js backend port 4000, direct `/uploads/` serving, Gzip compression, and SPA history fallback.
+- **Authoritative Hosting Manual (`HOSTING.md`)**:
+  - Authored comprehensive 8-section runbook covering:
+    1. Storage Architecture & Capacity Economics (10GB = ~17,400 photos at $0 cloud storage fees).
+    2. Database Provisioning Options (Neon, Supabase, Render, local Docker).
+    3. Step-by-step GoDaddy cPanel guide (Node.js Selector 20+, public_html upload, .htaccess setup).
+    4. Linux VPS guide (Ubuntu 22.04/24.04 LTS, Docker Compose, Nginx, Let's Encrypt SSL via Certbot).
+    5. Modern PaaS guide (Render / Railway with Persistent Volume mounted at `/app/uploads`).
+    6. Initial setup, migrations, seed, and super admin access.
+    7. Automated disaster recovery (1-click UI backup + daily server cron backup for Postgres and uploads).
+    8. 10-point Pre-Flight Launch Verification Checklist.
+- **Verification & Builds**:
+  - `npm run lint`: 0 errors.
+  - `npm run build`: Production build succeeded in 8.53s; `dist/.htaccess` confirmed generated.
+  - `backend/` tsc build: passed cleanly with 0 errors.
+
 
