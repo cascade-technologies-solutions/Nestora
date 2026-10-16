@@ -41,7 +41,7 @@ import AdminCMS from "./pages/admin/AdminCMS";
 import AdminEmployees from "./pages/admin/AdminEmployees";
 import AdminSettings from "./pages/admin/AdminSettings";
 
-const queryClient = new QueryClient();
+import { queryClient } from "./lib/queryClient";
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

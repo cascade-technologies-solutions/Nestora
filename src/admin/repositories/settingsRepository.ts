@@ -1,9 +1,7 @@
-import { storageGet, storageSet } from '../lib/storage';
+import { api } from '@/lib/api';
+import { queryClient } from '@/lib/queryClient';
 import type { SiteSettings } from '../types/admin';
 import { CONFIG } from '@/config';
-import { logActivity } from './activityRepository';
-
-const SETTINGS_KEY = 'site_settings';
 
 const DEFAULT_SETTINGS: SiteSettings = {
   companyName: 'NestoraHub',
@@ -26,22 +24,36 @@ const DEFAULT_SETTINGS: SiteSettings = {
 
 export const settingsRepository = {
   async get(): Promise<SiteSettings> {
-    const stored = storageGet<SiteSettings>(SETTINGS_KEY);
-    return Promise.resolve(stored ?? DEFAULT_SETTINGS);
+    try {
+      const res = await api.get('/admin/settings');
+      const data = res?.data ?? res;
+      return {
+        ...DEFAULT_SETTINGS,
+        ...data,
+      };
+    } catch {
+      try {
+        const pub = await api.get('/settings');
+        const data = pub?.data ?? pub;
+        return {
+          ...DEFAULT_SETTINGS,
+          ...data,
+        };
+      } catch {
+        return DEFAULT_SETTINGS;
+      }
+    }
   },
 
   async save(data: Omit<SiteSettings, 'updatedAt'>, activeUser: string): Promise<SiteSettings> {
-    const saved: SiteSettings = {
-      ...data,
+    const res = await api.put('/admin/settings', data);
+    queryClient.invalidateQueries({ queryKey: ['settings'] });
+    const saved = res?.data ?? res;
+    return {
+      ...DEFAULT_SETTINGS,
+      ...saved,
       updatedAt: new Date().toISOString(),
     };
-    storageSet<SiteSettings>(SETTINGS_KEY, saved);
-    await logActivity({
-      user: activeUser,
-      action: 'updated company contact and footer details',
-      module: 'Website CMS',
-    });
-    return Promise.resolve(saved);
   },
 
   getDefault(): SiteSettings {

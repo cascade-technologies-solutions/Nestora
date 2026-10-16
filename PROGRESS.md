@@ -9,7 +9,7 @@
 | **P4** | Business APIs, audit logging, wishlist | #8, #9, #10, #11, #12, #15, #16, #17 | **DONE** | Full CRUD APIs for Properties (auto `NST-###` code, draft/published filter), Projects, Services, Enquiries (public submit, rate-limited, admin triage), CMS Sections (hero, about, contact, brand, footer, social + bulk-update), Settings, Employees, Wishlist, and Audit Logging. Live verification passed: draft hiding, status update, project/service operations, triage notes, wishlist add/fetch/remove, and SQL AuditLog row persistence verified. |
 | **P5** | Media storage (host disk) & Media API | #13, #14 | **DONE** | Host disk storage implemented via `multer.diskStorage` saving to `backend/uploads/` (`properties/`, `projects/`, `cms/`, `general/`) and statically served at `/uploads/...` ($0 cloud storage fees). Media CRUD API completed with MIME filtering (jpeg/png/webp/avif), 10MB limit, file rename, replace, bulk delete, and 409 reference protection (blocks deletion when image is used in properties/projects/services/CMS). Verified end-to-end via `verify-p5.ts`. |
 | **P6** | Cross-cutting hardening & security | #20, #21, #22 | **DONE** | Centralized sanitized error handling (`errorHandler.ts`) translating Zod 400s with field errors, Prisma P2002 -> 409 Conflict, P2025 -> 404, Multer 413, and sanitized 500s with Request ID (zero stack traces or internal SQL leaks). Helmet security headers and express-rate-limiters (global 300/15m, auth 10/15m, enquiry 5/h) active. Fail-fast boot environment validator implemented. Secret audit confirmed zero plaintext secrets in repo. |
-| **P7** | Frontend API migration & React Query | #18, #19 | **PENDING** | |
+| **P7** | Frontend API migration & React Query | #18, #19 | **DONE** | TanStack Query client wired at root. All 9 admin repositories migrated to call live backend endpoints via typed `src/lib/api.ts` with transparent React Query cache invalidations. Public property views (`Index.tsx`, `RealEstate.tsx`, `AllProperties.tsx`, `FeaturedProperties.tsx`) wired to `propertyRepository.getPublished()`. Wishlist synchronized with `/api/v1/wishlist`. `npm run lint` 0 errors, `npm run build` succeeds cleanly in 8.2s. |
 | **P7X**| Admin console UX optimization (low-click) | N/A | **PENDING** | |
 | **P8** | Data migration (localStorage to PostgreSQL) | #23 | **PENDING** | |
 | **P9** | Production deployment artifacts & HOSTING.md | #24 | **PENDING** | |
@@ -135,3 +135,27 @@
   - Duplicate user registration returned HTTP 409 with unique constraint collision handling.
   - Confirmed zero stack traces or SQL leaked in error JSON.
 - **Build & Lint**: `npm run lint` 0 errors, `backend/` tsc build passed with 0 errors.
+
+### Phase P7: Frontend API Migration & React Query
+- **TanStack React Query Setup**:
+  - `src/lib/queryClient.ts` configured with `staleTime: 60_000`, `gcTime: 300_000`, and automatic cache invalidation helper `invalidateAdminQueries()`.
+  - Wired into `src/App.tsx` via `<QueryClientProvider client={queryClient}>`.
+- **Admin Repositories Migration (Database-Driven)**:
+  - `propertyRepository.ts`: CRUD + `setStatus`, `setFeatured`, `getPublished` calling `/api/v1/properties`.
+  - `projectRepository.ts`: CRUD + `getFeatured` calling `/api/v1/projects`.
+  - `servicesRepository.ts`: CRUD calling `/api/v1/services`.
+  - `enquiryRepository.ts`: Admin list, update status/triage notes calling `/api/v1/enquiries`.
+  - `homepageRepository.ts`: Single & bulk section update calling `/api/v1/cms`.
+  - `settingsRepository.ts`: Fetch & update company metadata calling `/api/v1/settings`.
+  - `mediaRepository.ts`: List, upload (multipart), rename, delete calling `/api/v1/media`.
+  - `employeeRepository.ts`: List, create, update, delete calling `/api/v1/employees`.
+  - `activityRepository.ts`: Real-time audit log reader calling `/api/v1/audit-logs`.
+- **Public Website Integration**:
+  - `src/pages/Index.tsx`: Loads live published properties, projects, and settings.
+  - `src/pages/RealEstate.tsx`: Loads live published properties from `propertyRepository.getPublished()`.
+  - `src/components/FeaturedProperties.tsx`: Loads live published properties, selects featured items, and filters dynamically with resilient local fallback.
+  - `src/pages/AllProperties.tsx`: Connected to live database listings with dynamic search, category, location, and price filtering.
+  - `src/contexts/WishlistContext.tsx`: Connected to `/api/v1/wishlist` for authenticated user wishlist synchronization with cookie fallback.
+- **Verification & Builds**:
+  - `npm run lint`: 0 errors.
+  - `npm run build`: Production build completed successfully in 8.23s.

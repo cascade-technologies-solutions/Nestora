@@ -7,9 +7,10 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { allProperties } from '@/data/properties';
+import { AdminProperty } from '@/admin/types/admin';
 
 interface PropertyCardProps {
-  property: typeof allProperties[0];
+  property: AdminProperty | typeof allProperties[0];
   isVisible: boolean;
   delay: number;
   onClick: () => void;

@@ -3,6 +3,7 @@ import Cookies from 'js-cookie';
 import { useAuth } from './AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { api } from '@/lib/api';
 
 // Property type for wishlist items
 export type WishlistProperty = {
@@ -49,23 +50,30 @@ export const WishlistProvider = ({ children }: { children: React.ReactNode }) =>
     }
   });
 
-  // Clear wishlist when user logs out and load user's wishlist when logged in
+  // Sync wishlist with backend when authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      const savedWishlist = Cookies.get(WISHLIST_COOKIE_NAME);
-      try {
-        if (savedWishlist) {
-          setWishlist(JSON.parse(savedWishlist));
-        }
-      } catch (error) {
-        console.error('Error parsing wishlist cookie:', error);
-      }
+      api.get('/wishlist')
+        .then((res) => {
+          const items: WishlistProperty[] = Array.isArray(res) ? res : res?.data || [];
+          setWishlist(items);
+        })
+        .catch(() => {
+          const savedWishlist = Cookies.get(WISHLIST_COOKIE_NAME);
+          if (savedWishlist) {
+            try {
+              setWishlist(JSON.parse(savedWishlist));
+            } catch {
+              // ignore
+            }
+          }
+        });
     } else {
       setWishlist([]);
     }
   }, [isAuthenticated]);
 
-  // Save to cookies whenever wishlist changes
+  // Save to cookies as client cache whenever wishlist changes
   useEffect(() => {
     if (isAuthenticated) {
       try {
@@ -80,7 +88,7 @@ export const WishlistProvider = ({ children }: { children: React.ReactNode }) =>
     }
   }, [wishlist, isAuthenticated]);
 
-  const addToWishlist = (property: WishlistProperty) => {
+  const addToWishlist = async (property: WishlistProperty) => {
     if (!isAuthenticated) {
       toast({
         title: "Authentication required",
@@ -97,12 +105,23 @@ export const WishlistProvider = ({ children }: { children: React.ReactNode }) =>
       }
       return prev;
     });
+
+    try {
+      await api.post(`/wishlist/${property.id}`);
+    } catch (err) {
+      console.error('Failed to sync wishlist to backend:', err);
+    }
   };
 
-  const removeFromWishlist = (propertyId: number | string) => {
+  const removeFromWishlist = async (propertyId: number | string) => {
     if (!isAuthenticated) return;
     
     setWishlist(prev => prev.filter(property => property.id !== propertyId));
+    try {
+      await api.delete(`/wishlist/${propertyId}`);
+    } catch (err) {
+      console.error('Failed to sync wishlist removal to backend:', err);
+    }
   };
 
   const isInWishlist = (propertyId: number | string) => {

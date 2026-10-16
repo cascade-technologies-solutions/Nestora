@@ -13,6 +13,8 @@ import SearchPanel from './property/SearchPanel';
 import PropertyList from './property/PropertyList';
 
 import { allProperties, isPropertyInPriceRange, convertPriceToValue } from '@/data/properties';
+import { propertyRepository } from '@/admin/repositories/propertyRepository';
+import { AdminProperty } from '@/admin/types/admin';
 
 // Enhanced property filtering with more properties for each category
 const commercialProperties = allProperties.filter(prop => 
@@ -43,10 +45,11 @@ const luxuryProperties = allProperties.filter(prop =>
 
 const FeaturedProperties = () => {
   const [isVisible, setIsVisible] = useState(false);
-  const [properties, setProperties] = useState(allProperties.slice(0, 4));
-  const [filteredProperties, setFilteredProperties] = useState(properties);
+  const [baseProperties, setBaseProperties] = useState<(AdminProperty | typeof allProperties[0])[]>(allProperties);
+  const [properties, setProperties] = useState<(AdminProperty | typeof allProperties[0])[]>(allProperties.slice(0, 4));
+  const [filteredProperties, setFilteredProperties] = useState<(AdminProperty | typeof allProperties[0])[]>(properties);
   const [showFiltered, setShowFiltered] = useState(false);
-  const [selectedProperty, setSelectedProperty] = useState<typeof allProperties[0] | null>(null);
+  const [selectedProperty, setSelectedProperty] = useState<AdminProperty | typeof allProperties[0] | null>(null);
   const [isPropertyDetailsOpen, setIsPropertyDetailsOpen] = useState(false);
   const [showAllProperties, setShowAllProperties] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -58,10 +61,23 @@ const FeaturedProperties = () => {
   const [selectedLocation, setSelectedLocation] = useState('');
   const [selectedPriceRange, setSelectedPriceRange] = useState('');
 
+  useEffect(() => {
+    propertyRepository.getPublished().then(data => {
+      if (data && data.length > 0) {
+        setBaseProperties(data);
+        const feat = data.filter(p => p.featured);
+        setProperties(feat.length > 0 ? feat.slice(0, 4) : data.slice(0, 4));
+        setFilteredProperties(data);
+      }
+    }).catch(err => {
+      console.warn('Using local properties fallback:', err);
+    });
+  }, []);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     
-    let filtered = [...allProperties];
+    let filtered = [...baseProperties];
     
     if (selectedType) {
       filtered = filtered.filter(property => {
@@ -69,13 +85,13 @@ const FeaturedProperties = () => {
           return property.type === 'For Sale' || property.type === 'For Rent';
         }
         if (selectedType === 'Commercial') {
-          return commercialProperties.some(p => p.id === property.id);
+          return commercialProperties.some(p => p.id === property.id) || property.title.toLowerCase().includes('commercial');
         }
         if (selectedType === 'Land') {
-          return landProperties.some(p => p.id === property.id);
+          return landProperties.some(p => p.id === property.id) || property.beds === 0;
         }
         if (selectedType === 'Luxury') {
-          return luxuryProperties.some(p => p.id === property.id);
+          return luxuryProperties.some(p => p.id === property.id) || property.price.includes('Cr');
         }
         return true;
       });
@@ -83,7 +99,7 @@ const FeaturedProperties = () => {
     
     if (selectedLocation) {
       filtered = filtered.filter(property => 
-        property.address.includes(selectedLocation)
+        property.address.toLowerCase().includes(selectedLocation.toLowerCase())
       );
     }
     
@@ -110,20 +126,21 @@ const FeaturedProperties = () => {
     setSelectedType('Residential');
     setSelectedLocation('');
     setSelectedPriceRange('');
-    setFilteredProperties(allProperties);
+    setFilteredProperties(baseProperties);
     setShowFiltered(false);
     setShowAllProperties(false);
-    setProperties(allProperties.slice(0, 4));
+    const feat = baseProperties.filter((p: any) => p.featured);
+    setProperties(feat.length > 0 ? feat.slice(0, 4) : baseProperties.slice(0, 4));
   };
 
-  const handlePropertyClick = (property: typeof allProperties[0]) => {
+  const handlePropertyClick = (property: AdminProperty | typeof allProperties[0]) => {
     setSelectedProperty(property);
     setIsPropertyDetailsOpen(true);
   };
 
   const handleViewAllClick = () => {
     setShowAllProperties(true);
-    setFilteredProperties(allProperties);
+    setFilteredProperties(baseProperties);
     setShowFiltered(false);
   };
 
