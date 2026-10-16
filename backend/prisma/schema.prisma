@@ -7,40 +7,108 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Employee {
-  id           String      @id @default(uuid())
-  name         String
-  username     String      @unique
-  role         String
-  status       String
+// ── Public Users & Wishlists ───────────────────────────────────────────────────
+
+model User {
+  id           String         @id @default(uuid())
+  email        String         @unique
   passwordHash String
-  lastLogin    DateTime?
-  createdAt    DateTime    @default(now())
-  AuditLogs    AuditLog[]
+  name         String
+  phone        String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  wishlist     WishlistItem[]
+  tokens       RefreshToken[]
 }
 
+model WishlistItem {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, propertyId])
+  @@index([userId])
+}
+
+// ── Administrative Staff & RBAC ────────────────────────────────────────────────
+
+model Employee {
+  id           String               @id @default(uuid())
+  name         String
+  username     String               @unique
+  role         String               // 'Super Admin' | 'Admin' | 'Employee'
+  status       String               // 'Active' | 'Suspended' | 'Deactivated'
+  passwordHash String
+  lastLogin    DateTime?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  permissions  EmployeePermission[]
+  tokens       RefreshToken[]
+  AuditLogs    AuditLog[]
+
+  @@index([role, status])
+}
+
+model EmployeePermission {
+  id         String   @id @default(uuid())
+  employeeId String
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  permission String   // e.g. 'manage:properties', 'manage:services', etc.
+  granted    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  @@unique([employeeId, permission])
+  @@index([employeeId])
+}
+
+// ── Authentication Sessions & Refresh Tokens ───────────────────────────────────
+
+model RefreshToken {
+  id         String    @id @default(uuid())
+  tokenHash  String    @unique
+  userId     String?
+  user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  employeeId String?
+  employee   Employee? @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([tokenHash])
+}
+
+// ── Core Business Domains ──────────────────────────────────────────────────────
+
 model Property {
-  id             String    @id @default(uuid())
-  propertyCode   String    @unique
+  id             String         @id @default(uuid())
+  propertyCode   String         @unique
   title          String
   price          String
   address        String
   beds           Int
   baths          Int
   sqft           Int
-  type           String
-  category       String
+  type           String         // 'For Sale' | 'For Rent'
+  category       String         // 'Residential' | 'Commercial' | 'Plots & Land'
   isNew          Boolean
   image          String
-  status         String
+  gallery        String[]       @default([])
+  status         String         // 'draft' | 'published' | 'under_negotiation' | 'sold' | 'rented' | 'archived'
   featured       Boolean
   assignedAdmin  String?
   amenities      String[]
   seoTitle       String?
   seoDescription String?
   seoKeywords    String?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  wishlistItems  WishlistItem[]
+
+  @@index([status, featured])
+  @@index([category, type])
 }
 
 model Project {
@@ -48,7 +116,7 @@ model Project {
   title       String
   category    String
   location    String
-  status      String
+  status      String   // 'Completed' | 'In Progress' | 'Planning' | 'Archived'
   description String
   image       String
   beforeImage String?
@@ -57,6 +125,8 @@ model Project {
   featured    Boolean
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([status, featured])
 }
 
 model Service {
@@ -69,14 +139,24 @@ model Service {
   order       Int
   image       String?
   workTypes   String[]
+
+  @@index([enabled, order])
 }
 
 model MediaAsset {
-  id        String   @id @default(uuid())
-  name      String
-  url       String
-  size      Int
-  createdAt DateTime @default(now())
+  id           String   @id @default(uuid())
+  name         String
+  url          String
+  size         Int
+  mimeType     String?
+  folder       String?  @default("general")
+  width        Int?
+  height       Int?
+  uploadedById String?
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([folder])
 }
 
 model Settings {
@@ -96,29 +176,45 @@ model Settings {
   updatedAt            DateTime @updatedAt
 }
 
+model CmsSection {
+  id        String   @id @default(uuid())
+  section   String   @unique // 'hero' | 'about' | 'contact' | 'brand_assets' | 'footer' | 'social'
+  content   Json
+  updatedAt DateTime @updatedAt
+
+  @@index([section])
+}
+
 model Enquiry {
   id            String    @id @default(uuid())
-  type          String
+  type          String    // 'contact' | 'property' | 'service'
   name          String
   email         String
   phone         String
   message       String
   propertyId    String?
   serviceId     String?
-  status        String
-  priority      String
+  status        String    // 'New' | 'Contacted' | 'Site Visit' | 'Negotiation' | 'Closed'
+  priority      String    // 'Low' | 'Medium' | 'High'
   assignedTo    String?
   internalNotes String?
   followUpDate  DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  @@index([status, priority])
+  @@index([createdAt])
 }
 
 model AuditLog {
-  id          String    @id @default(uuid())
-  employeeId  String
-  employee    Employee  @relation(fields: [employeeId], references: [id])
-  action      String
-  module      String
-  timestamp   DateTime  @default(now())
+  id         String   @id @default(uuid())
+  employeeId String
+  employee   Employee @relation(fields: [employeeId], references: [id])
+  action     String
+  module     String
+  timestamp  DateTime @default(now())
+
+  @@index([timestamp])
+  @@index([employeeId])
+  @@index([module])
 }
