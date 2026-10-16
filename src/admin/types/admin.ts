@@ -30,10 +30,10 @@ export interface AdminProperty {
 }
 
 export interface EmployeeRole {
-  role: 'Super Admin' | 'Admin';
+  role: 'Super Admin' | 'Admin' | 'Employee';
 }
 
-export type EmployeeRoleType = 'Super Admin' | 'Admin';
+export type EmployeeRoleType = 'Super Admin' | 'Admin' | 'Employee';
 export type EmployeeStatus = 'Active' | 'Suspended' | 'Deactivated';
 
 export interface Employee {
@@ -122,9 +122,11 @@ export interface SiteSettings {
 }
 
 export interface AdminSession {
+  id?: string;
   username: string;
   name: string;
   role: EmployeeRoleType;
+  permissions?: string[];
   loginTime: number;
 }
 

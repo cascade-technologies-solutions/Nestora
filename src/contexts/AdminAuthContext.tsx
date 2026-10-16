@@ -3,9 +3,8 @@ import {
   getAdminSession,
   setAdminSession,
   clearAdminSession,
-  verifyPassword,
 } from '@/admin/lib/auth';
-import { employeeRepository } from '@/admin/repositories/employeeRepository';
+import { api, setAdminToken } from '@/lib/api';
 import type { AdminSession } from '@/admin/types/admin';
 
 interface AdminAuthContextType {
@@ -23,112 +22,132 @@ export const AdminAuthProvider = ({ children }: { children: React.ReactNode }) =
   const [adminUser, setAdminUser] = useState<AdminSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check session on mount
+  // Initialize and verify session against backend on mount
   useEffect(() => {
-    const session = getAdminSession();
-    if (session) {
-      setIsAdminAuthenticated(true);
-      setAdminUser(session);
-    }
-    // Developer convenience: auto-login demo superadmin on localhost if no session
-    if (!session && typeof window !== 'undefined') {
-      const host = window.location.hostname;
-      if (host === 'localhost' || host === '127.0.0.1') {
-        try {
-          setAdminSession('superadmin', 'Super Admin', 'Super Admin', true);
+    let isMounted = true;
+
+    async function initSession() {
+      const cached = getAdminSession();
+      if (cached) {
+        setIsAdminAuthenticated(true);
+        setAdminUser(cached);
+      }
+
+      try {
+        // Verify session with the real backend /me endpoint
+        const res = await api.get<{
+          id: string;
+          username: string;
+          name: string;
+          role: AdminSession['role'];
+          permissions: string[];
+        }>('/admin/auth/me', { authType: 'admin' });
+
+        if (isMounted && res) {
+          const verifiedSession: AdminSession = {
+            id: res.id,
+            username: res.username,
+            name: res.name,
+            role: res.role,
+            permissions: res.permissions,
+            loginTime: cached?.loginTime || Date.now(),
+          };
           setIsAdminAuthenticated(true);
-          setAdminUser({ username: 'superadmin', name: 'Super Admin', role: 'Super Admin', loginTime: Date.now() });
-        } catch (e) {
-          // ignore
+          setAdminUser(verifiedSession);
+          // Update cached session with verified data
+          setAdminSession(
+            verifiedSession.username,
+            verifiedSession.name,
+            verifiedSession.role,
+            true,
+            verifiedSession.permissions,
+            verifiedSession.id
+          );
+        }
+      } catch (err) {
+        // If /me failed and no cached session or token expired, clear
+        if (isMounted) {
+          clearAdminSession();
+          setAdminToken(null);
+          setIsAdminAuthenticated(false);
+          setAdminUser(null);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
         }
       }
     }
-    setIsLoading(false);
+
+    initSession();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const adminLogin = useCallback(async (username: string, password: string, remember: boolean) => {
     try {
-      const uTrim = username.trim().toLowerCase();
-      
-      // Self-healing database check: force superadmin initialization in localStorage
-      if (uTrim === 'superadmin') {
-        const EMPLOYEES_KEY = 'employees';
-        const NS = 'nestora_cms_';
-        let list: any[] = [];
-        try {
-          const raw = localStorage.getItem(NS + EMPLOYEES_KEY);
-          if (raw) list = JSON.parse(raw);
-        } catch (e) {
-          list = [];
-        }
-        
-        const superAdminIndex = list.findIndex(e => e.username.toLowerCase() === 'superadmin');
-        const DEFAULT_SUPERADMIN_HASH = '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9';
-        
-        if (superAdminIndex === -1) {
-          const defaultSuperAdmin = {
-            id: 'emp_superadmin',
-            name: 'Super Admin',
-            username: 'superadmin',
-            role: 'Super Admin',
-            status: 'Active',
-            passwordHash: DEFAULT_SUPERADMIN_HASH,
-            createdAt: new Date().toISOString()
-          };
-          localStorage.setItem(NS + EMPLOYEES_KEY, JSON.stringify([defaultSuperAdmin, ...list]));
-        } else {
-          const superAdmin = list[superAdminIndex];
-          if (superAdmin.passwordHash !== DEFAULT_SUPERADMIN_HASH || superAdmin.status !== 'Active') {
-            superAdmin.passwordHash = DEFAULT_SUPERADMIN_HASH;
-            superAdmin.status = 'Active';
-            localStorage.setItem(NS + EMPLOYEES_KEY, JSON.stringify(list));
-          }
-        }
+      const uTrim = username.trim();
+      if (!uTrim || !password) {
+        return { success: false, error: 'Please enter both username and password.' };
       }
 
-      const emp = await employeeRepository.getByUsername(username);
-      if (!emp) {
-        return { success: false, error: 'Incorrect username or password.' };
-      }
-
-      if (emp.status === 'Suspended') {
-        return { success: false, error: 'Your account has been suspended. Please contact the Super Admin.' };
-      }
-
-      if (emp.status === 'Deactivated') {
-        return { success: false, error: 'Your account has been deactivated.' };
-      }
-
-      // Safe bypass validation for superadmin demo credentials
-      const isDemoSuperAdmin = uTrim === 'superadmin' && password === 'admin123';
-      const valid = isDemoSuperAdmin || (await verifyPassword(password, emp.passwordHash));
-      if (!valid) {
-        return { success: false, error: 'Incorrect username or password.' };
-      }
-
-      // Successful login
-      setAdminSession(emp.username, emp.name, emp.role, remember);
-      setIsAdminAuthenticated(true);
-      setAdminUser({
-        username: emp.username,
-        name: emp.name,
-        role: emp.role,
-        loginTime: Date.now()
+      // Production authentication: strictly database-backed via Express API
+      const res = await api.post<{
+        accessToken: string;
+        user: {
+          id: string;
+          username: string;
+          name: string;
+          role: AdminSession['role'];
+          permissions: string[];
+          loginTime: number;
+        };
+      }>('/admin/auth/login', {
+        username: uTrim,
+        password,
+        remember,
       });
 
-      // Update last login timestamp
-      await employeeRepository.update(emp.id, { lastLogin: new Date().toISOString() }, emp.name);
+      if (!res || !res.accessToken || !res.user) {
+        return { success: false, error: 'Invalid response from authentication server.' };
+      }
+
+      // Store Bearer token in memory & storage
+      setAdminToken(res.accessToken);
+
+      const session: AdminSession = {
+        id: res.user.id,
+        username: res.user.username,
+        name: res.user.name,
+        role: res.user.role,
+        permissions: res.user.permissions,
+        loginTime: res.user.loginTime || Date.now(),
+      };
+
+      setAdminSession(session.username, session.name, session.role, remember, session.permissions, session.id);
+      setIsAdminAuthenticated(true);
+      setAdminUser(session);
 
       return { success: true };
     } catch (err: any) {
-      return { success: false, error: err.message || 'An unexpected authentication error occurred.' };
+      return {
+        success: false,
+        error: err.message || 'Incorrect username or password.',
+      };
     }
   }, []);
 
-  const adminLogout = useCallback(() => {
-    clearAdminSession();
-    setIsAdminAuthenticated(false);
-    setAdminUser(null);
+  const adminLogout = useCallback(async () => {
+    try {
+      await api.post('/admin/auth/logout', {}, { authType: 'admin', skipRefresh: true }).catch(() => {});
+    } finally {
+      clearAdminSession();
+      setAdminToken(null);
+      setIsAdminAuthenticated(false);
+      setAdminUser(null);
+    }
   }, []);
 
   return (

@@ -4,37 +4,8 @@ import { logActivity } from './activityRepository';
 
 const EMPLOYEES_KEY = 'employees';
 
-// SHA-256 of 'admin123'
-const DEFAULT_SUPERADMIN_HASH = '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9';
-
-function seedEmployeesIfNeeded() {
-  const list = storageGet<Employee[]>(EMPLOYEES_KEY) ?? [];
-  const superAdminIndex = list.findIndex(e => e.username.toLowerCase() === 'superadmin');
-
-  if (superAdminIndex === -1) {
-    const defaultSuperAdmin: Employee = {
-      id: 'emp_superadmin',
-      name: 'Super Admin',
-      username: 'superadmin',
-      role: 'Super Admin',
-      status: 'Active',
-      passwordHash: DEFAULT_SUPERADMIN_HASH,
-      createdAt: new Date().toISOString()
-    };
-    storageSet<Employee[]>(EMPLOYEES_KEY, [defaultSuperAdmin, ...list]);
-  } else {
-    const superAdmin = list[superAdminIndex];
-    if (superAdmin.passwordHash !== DEFAULT_SUPERADMIN_HASH || superAdmin.status !== 'Active') {
-      superAdmin.passwordHash = DEFAULT_SUPERADMIN_HASH;
-      superAdmin.status = 'Active';
-      storageSet<Employee[]>(EMPLOYEES_KEY, list);
-    }
-  }
-}
-
 export const employeeRepository = {
   async getAll(): Promise<Employee[]> {
-    seedEmployeesIfNeeded();
     return Promise.resolve(storageGet<Employee[]>(EMPLOYEES_KEY) ?? []);
   },
 
@@ -49,7 +20,6 @@ export const employeeRepository = {
   },
 
   async create(name: string, username: string, passwordHash: string, role: EmployeeRoleType, activeUser: string): Promise<Employee> {
-    seedEmployeesIfNeeded();
     const list = await this.getAll();
 
     // Validate maximum admins

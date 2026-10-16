@@ -141,11 +141,10 @@ const AdminLogin = () => {
             </Button>
           </form>
 
-          {/* Hint */}
-          <div className="bg-slate-850/40 p-3 rounded-lg border border-slate-800/40 text-center text-slate-600 text-xs mt-5 leading-normal">
-            Demo Login:<br />
-            Username: <span className="text-slate-400 font-mono">superadmin</span> &nbsp;
-            Password: <span className="text-slate-400 font-mono">admin123</span>
+          {/* Security Notice */}
+          <div className="bg-slate-850/40 p-3 rounded-lg border border-slate-800/40 text-center text-slate-500 text-xs mt-5 leading-normal">
+            Authorized Personnel Only<br />
+            <span className="text-slate-600 text-[11px]">Database-backed credentials & session security enforced</span>
           </div>
         </div>
 
