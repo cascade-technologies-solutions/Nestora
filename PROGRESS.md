@@ -11,7 +11,7 @@
 | **P6** | Cross-cutting hardening & security | #20, #21, #22 | **DONE** | Centralized sanitized error handling (`errorHandler.ts`) translating Zod 400s with field errors, Prisma P2002 -> 409 Conflict, P2025 -> 404, Multer 413, and sanitized 500s with Request ID (zero stack traces or internal SQL leaks). Helmet security headers and express-rate-limiters (global 300/15m, auth 10/15m, enquiry 5/h) active. Fail-fast boot environment validator implemented. Secret audit confirmed zero plaintext secrets in repo. |
 | **P7** | Frontend API migration & React Query | #18, #19 | **DONE** | TanStack Query client wired at root. All 9 admin repositories migrated to call live backend endpoints via typed `src/lib/api.ts` with transparent React Query cache invalidations. Public property views (`Index.tsx`, `RealEstate.tsx`, `AllProperties.tsx`, `FeaturedProperties.tsx`) wired to `propertyRepository.getPublished()`. Wishlist synchronized with `/api/v1/wishlist`. `npm run lint` 0 errors, `npm run build` succeeds cleanly in 8.2s. |
 | **P7X**| Admin console UX optimization (low-click) | N/A | **DONE** | 1-click status pipeline buttons in `AdminEnquiries.tsx`, inline status dropdown in `AdminProperties.tsx`, direct 1-click draft publish from `AdminDashboard.tsx`, drag-and-drop dropzone + auto-select in `MediaLibraryModal.tsx`, sticky quick-jump pill bar + bulk save + `Ctrl+S` + `beforeunload` guard in `AdminCMS.tsx`. Lint 0 errors, build succeeds in 8.3s. |
-| **P8** | Data migration (localStorage to PostgreSQL) | #23 | **PENDING** | |
+| **P8** | Data migration (localStorage to PostgreSQL) | #23 | **DONE** | Full migration and disaster recovery system: backend export (`/api/v1/admin/migrate/export`) and import (`/api/v1/admin/migrate/import`) with 10MB payload limit, transactional idempotent upsert of properties, projects, services, enquiries, CMS sections, and settings. Frontend `AdminSettings.tsx` updated with 1-click JSON backup export, browser localStorage scanner/migrator, and file upload restore. Verified 100% via `backend/scripts/verify-p8.ts`. |
 | **P9** | Production deployment artifacts & HOSTING.md | #24 | **PENDING** | |
 | **P10**| Automated tests (backend + E2E), security QA, release gate | #25, #26, #27, #29 | **PENDING** | |
 
@@ -178,3 +178,24 @@
 - **Verification & Builds**:
   - `npm run lint`: 0 errors.
   - `npm run build`: Production build completed successfully in 8.37s.
+
+### Phase P8: Data Migration (LocalStorage to PostgreSQL) & Disaster Recovery
+- **Backend Migration Endpoints (`migrationRoutes.ts` & `migrationController.ts`)**:
+  - Express JSON body parser expanded to `10mb` to safely process large data dumps.
+  - `GET /api/v1/admin/migrate/export`: Exports entire database (properties, projects, services, enquiries, CMS sections, settings) as a downloadable, timestamped JSON object with counts.
+  - `POST /api/v1/admin/migrate/import`: Protected by `requireAuth` + `requirePermission('manage:settings')`. Performs transactional, idempotent upserting across all 6 data entities, mapping legacy schema shapes (such as `companySettings` -> `settings`, array/object CMS sections, and flexible service fields).
+- **Frontend Disaster Recovery UI (`AdminSettings.tsx`)**:
+  - Added dedicated "Database Migration & Disaster Recovery" card with 3 low-click action buttons:
+    1. **Export DB Backup (JSON)**: Initiates direct download of `nestora_database_export_YYYY-MM-DD.json`.
+    2. **Migrate Browser LocalStorage to DB**: Scans browser storage for legacy keys (`nestora_properties`, `real_estate_properties`, `nestora_projects`, `nestora_services`, `nestora_enquiries`, `nestora_homepage_cms`, `nestora_site_settings`), packages them, and uploads them to PostgreSQL with live status feedback.
+    3. **Import Backup File (.json)**: Hidden file selector allowing immediate drag-and-drop or file upload restore of any previous export payload.
+- **Live Automated Verification (`backend/scripts/verify-p8.ts`) Evidence**:
+  - Authenticated as Super Admin with valid JWT.
+  - `GET /api/v1/admin/migrate/export` returned HTTP 200 with all database tables populated.
+  - `POST /api/v1/admin/migrate/import` called with multi-table migration payload. All records upserted cleanly.
+  - Re-queried PostgreSQL to confirm newly imported property, project, and service rows persisted with expected fields.
+  - Unauthenticated access on import endpoint successfully rejected with HTTP 401.
+- **Verification & Builds**:
+  - `npm run lint`: 0 errors.
+  - `npm run build`: Production build succeeded in 8.32s.
+

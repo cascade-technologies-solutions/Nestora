@@ -4,12 +4,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { settingsRepository } from '@/admin/repositories/settingsRepository';
 import type { SiteSettings } from '@/admin/types/admin';
-import { Loader2, Save, RefreshCw, ExternalLink } from 'lucide-react';
+import { Loader2, Save, RefreshCw, ExternalLink, Database, Download, Upload, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
+import { api } from '@/lib/api';
 
 const settingsSchema = z.object({
   companyName: z.string().min(1, 'Company name is required'),
@@ -77,6 +78,126 @@ const AdminSettings = () => {
       footerTagline: defaults.footerTagline,
     });
     toast({ title: 'Reset to defaults', description: 'Save to apply.' });
+  };
+
+  const [isExporting, setIsExporting] = useState(false);
+  const [isMigrating, setIsMigrating] = useState(false);
+  const [migrationStatus, setMigrationStatus] = useState<string | null>(null);
+
+  // 1. Export database to JSON
+  const handleExportBackup = async () => {
+    setIsExporting(true);
+    try {
+      const res = await api.get('/admin/migrate/export');
+      const blob = new Blob([JSON.stringify(res, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `nestora_database_export_${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast({
+        title: "Export Completed",
+        description: "Entire PostgreSQL database exported to JSON file.",
+      });
+    } catch (err: any) {
+      toast({
+        title: "Export Failed",
+        description: err.message || "Failed to export database.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // 2. Migrate browser localStorage to Database
+  const handleMigrateLocalStorage = async () => {
+    setIsMigrating(true);
+    setMigrationStatus('Scanning browser localStorage...');
+    try {
+      const readKey = (key: string) => {
+        try {
+          const val = localStorage.getItem(key);
+          return val ? JSON.parse(val) : null;
+        } catch {
+          return null;
+        }
+      };
+
+      const payload = {
+        properties: readKey('nestora_properties') || readKey('real_estate_properties'),
+        projects: readKey('nestora_projects'),
+        services: readKey('nestora_services'),
+        enquiries: readKey('nestora_enquiries'),
+        cms: readKey('nestora_homepage_cms'),
+        settings: readKey('nestora_site_settings'),
+      };
+
+      const hasData = Object.values(payload).some(val => val !== null && val !== undefined && (Array.isArray(val) ? val.length > 0 : Object.keys(val).length > 0));
+
+      if (!hasData) {
+        toast({
+          title: "No Local Data Found",
+          description: "No legacy localStorage keys were found in this browser. Database is already running on PostgreSQL.",
+        });
+        setMigrationStatus(null);
+        return;
+      }
+
+      setMigrationStatus('Uploading and upserting data to PostgreSQL...');
+      const res = await api.post('/admin/migrate/import', payload);
+      const summary = res.imported || res;
+      setMigrationStatus('Migration successfully imported!');
+      toast({
+        title: "Migration Completed",
+        description: `Imported ${summary.properties || 0} properties, ${summary.projects || 0} projects, ${summary.services || 0} services.`,
+      });
+    } catch (err: any) {
+      toast({
+        title: "Migration Failed",
+        description: err.message || "Failed to import localStorage data.",
+        variant: "destructive",
+      });
+      setMigrationStatus('Migration failed.');
+    } finally {
+      setIsMigrating(false);
+    }
+  };
+
+  // 3. Import JSON Backup File
+  const handleImportBackupFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsMigrating(true);
+    setMigrationStatus(`Reading "${file.name}"...`);
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      const payload = parsed.payload || parsed.data?.payload || parsed;
+
+      setMigrationStatus('Importing backup payload to PostgreSQL...');
+      const res = await api.post('/admin/migrate/import', payload);
+      const summary = res.imported || res;
+      toast({
+        title: "Backup Imported",
+        description: `Successfully restored database records.`,
+      });
+      setMigrationStatus('Backup restore completed!');
+    } catch (err: any) {
+      toast({
+        title: "Import Error",
+        description: err.message || "Invalid JSON backup file.",
+        variant: "destructive",
+      });
+      setMigrationStatus('Import failed.');
+    } finally {
+      setIsMigrating(false);
+      e.target.value = '';
+    }
   };
 
   const onSubmit = async (values: SettingsFormValues) => {
@@ -309,6 +430,83 @@ const AdminSettings = () => {
           </Button>
         </div>
       </form>
+
+      {/* Database Management & LocalStorage Migration (Checklist #23) */}
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+        <div className="flex items-center gap-2">
+          <Database className="w-5 h-5 text-indigo-400" />
+          <h2 className="text-white font-semibold text-sm uppercase tracking-wide">
+            Database Migration & Disaster Recovery
+          </h2>
+        </div>
+        <p className="text-xs text-slate-400 leading-relaxed">
+          PostgreSQL is now the single source of truth for all Nestora data. Use these tools to export full database snapshots, restore from a JSON backup file, or migrate any legacy browser-local demo data directly into PostgreSQL.
+        </p>
+
+        {migrationStatus && (
+          <div className="flex items-center gap-2 text-xs px-3 py-2 rounded-lg bg-indigo-950/60 border border-indigo-700/40 text-indigo-200">
+            {isMigrating ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-400" />
+            ) : (
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+            )}
+            <span>{migrationStatus}</span>
+          </div>
+        )}
+
+        <div className="flex flex-wrap gap-3 pt-2">
+          {/* Export JSON */}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={isExporting}
+            onClick={handleExportBackup}
+            className="border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-200 hover:text-white gap-2"
+          >
+            {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5 text-indigo-400" />}
+            Export DB Backup (JSON)
+          </Button>
+
+          {/* Migrate LocalStorage */}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={isMigrating}
+            onClick={handleMigrateLocalStorage}
+            className="border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-200 hover:text-white gap-2"
+          >
+            {isMigrating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Database className="w-3.5 h-3.5 text-emerald-400" />}
+            Migrate Browser LocalStorage to DB
+          </Button>
+
+          {/* Import JSON */}
+          <label className="inline-flex">
+            <input
+              type="file"
+              accept=".json"
+              className="hidden"
+              onChange={handleImportBackupFile}
+              disabled={isMigrating}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={isMigrating}
+              onClick={(e) => {
+                const input = (e.currentTarget.parentElement?.querySelector('input[type="file"]') as HTMLInputElement);
+                if (input) input.click();
+              }}
+              className="border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-200 hover:text-white gap-2"
+            >
+              <Upload className="w-3.5 h-3.5 text-amber-400" />
+              Import Backup File (.json)
+            </Button>
+          </label>
+        </div>
+      </div>
     </div>
   );
 };

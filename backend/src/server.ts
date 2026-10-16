@@ -12,6 +12,7 @@ import { publicSettingsRouter, adminSettingsRouter } from './routes/settingsRout
 import { adminEmployeeRouter } from './routes/employeeRoutes';
 import { adminAuditLogRouter } from './routes/auditLogRoutes';
 import { adminMediaRouter } from './routes/mediaRoutes';
+import { adminMigrationRouter } from './routes/migrationRoutes';
 import { wishlistRouter } from './routes/wishlistRoutes';
 import { UPLOAD_BASE_DIR } from './services/storageService';
 import { errorHandler } from './middleware/errorHandler';
@@ -51,7 +52,7 @@ app.use(
   })
 );
 app.use(cookieParser());
-app.use(express.json({ limit: '1mb' }));
+app.use(express.json({ limit: '10mb' }));
 
 // Host Disk Media Serving (Zero cloud storage fees)
 app.use('/uploads', express.static(UPLOAD_BASE_DIR));
@@ -86,6 +87,7 @@ app.use('/api/v1/admin/settings', adminSettingsRouter);
 app.use('/api/v1/admin/employees', adminEmployeeRouter);
 app.use('/api/v1/admin/audit-logs', adminAuditLogRouter);
 app.use('/api/v1/admin/media', adminMediaRouter);
+app.use('/api/v1/admin/migrate', adminMigrationRouter);
 
 // Phase 1 + 2 Core: Health Check endpoint
 app.get('/api/v1/health', async (req: Request, res: Response) => {
