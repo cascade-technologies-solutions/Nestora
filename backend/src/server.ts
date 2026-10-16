@@ -11,7 +11,9 @@ import { publicCmsRouter, adminCmsRouter } from './routes/cmsRoutes';
 import { publicSettingsRouter, adminSettingsRouter } from './routes/settingsRoutes';
 import { adminEmployeeRouter } from './routes/employeeRoutes';
 import { adminAuditLogRouter } from './routes/auditLogRoutes';
+import { adminMediaRouter } from './routes/mediaRoutes';
 import { wishlistRouter } from './routes/wishlistRoutes';
+import { UPLOAD_BASE_DIR } from './services/storageService';
 import { prisma } from './utils/prisma';
 
 dotenv.config();
@@ -39,6 +41,9 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 
+// Host Disk Media Serving (Zero cloud storage fees)
+app.use('/uploads', express.static(UPLOAD_BASE_DIR));
+
 // Auth routes
 app.use('/api/v1/admin/auth', adminAuthRouter);
 app.use('/api/v1/auth', publicAuthRouter);
@@ -61,6 +66,7 @@ app.use('/api/v1/admin/cms', adminCmsRouter);
 app.use('/api/v1/admin/settings', adminSettingsRouter);
 app.use('/api/v1/admin/employees', adminEmployeeRouter);
 app.use('/api/v1/admin/audit-logs', adminAuditLogRouter);
+app.use('/api/v1/admin/media', adminMediaRouter);
 
 // Phase 1 + 2 Core: Health Check endpoint
 app.get('/api/v1/health', async (req: Request, res: Response) => {

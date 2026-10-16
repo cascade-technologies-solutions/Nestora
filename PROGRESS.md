@@ -7,7 +7,7 @@
 | **P2** | Production authentication (admin & public) | #4, #5 | **DONE** | Backend JWT access + rotating refresh tokens + bcrypt password hashing. Frontend contexts connected to DB endpoints. All hardcoded bypasses (`superadmin`/`admin123`, SHA-256 hash, localhost auto-login) 100% eliminated (`grep` verified 0 occurrences). Live tests verified: seeded superadmin -> 200 with 8 permissions; old bypass -> 401; public register/login -> 201/200. |
 | **P3** | Granular RBAC and server-side authorization | #6, #7 | **DONE** | Server-enforced RBAC: Super Admin (all 8 permissions), Admin (6 permissions, no employees/settings), Employee (granular `EmployeePermission` overrides, default none). Frontend updated with Employee role. Automated tests prove 401 unauthenticated, 403 forbidden without permission, 200 with permission, and granular employee override activation. |
 | **P4** | Business APIs, audit logging, wishlist | #8, #9, #10, #11, #12, #15, #16, #17 | **DONE** | Full CRUD APIs for Properties (auto `NST-###` code, draft/published filter), Projects, Services, Enquiries (public submit, rate-limited, admin triage), CMS Sections (hero, about, contact, brand, footer, social + bulk-update), Settings, Employees, Wishlist, and Audit Logging. Live verification passed: draft hiding, status update, project/service operations, triage notes, wishlist add/fetch/remove, and SQL AuditLog row persistence verified. |
-| **P5** | Media storage (host disk) & Media API | #13, #14 | **PENDING** | |
+| **P5** | Media storage (host disk) & Media API | #13, #14 | **DONE** | Host disk storage implemented via `multer.diskStorage` saving to `backend/uploads/` (`properties/`, `projects/`, `cms/`, `general/`) and statically served at `/uploads/...` ($0 cloud storage fees). Media CRUD API completed with MIME filtering (jpeg/png/webp/avif), 10MB limit, file rename, replace, bulk delete, and 409 reference protection (blocks deletion when image is used in properties/projects/services/CMS). Verified end-to-end via `verify-p5.ts`. |
 | **P6** | Cross-cutting hardening & security | #20, #21, #22 | **PENDING** | |
 | **P7** | Frontend API migration & React Query | #18, #19 | **PENDING** | |
 | **P7X**| Admin console UX optimization (low-click) | N/A | **PENDING** | |
@@ -92,3 +92,25 @@
   - User registered -> property added to wishlist -> retrieved -> deleted.
   - PostgreSQL `AuditLog` table: verified real rows created on admin mutations.
 - **Build & Lint**: `npm run lint` 0 errors, `npm run build` succeeded (8.83s).
+
+### Phase P5: Media Storage (Host Disk) & Media API
+- **Host Disk Storage Architecture**:
+  - `storageService.ts` using `multer.diskStorage` saving to `backend/uploads/` (`properties/`, `projects/`, `cms/`, `general/`).
+  - Statically served via `app.use('/uploads', express.static(UPLOAD_BASE_DIR))` ($0 cloud storage fees, up to ~19,000 photos on 10 GB hosting).
+  - Physical file deletion via `fs.promises.unlink`.
+- **Media API Endpoints**:
+  - `POST /api/v1/admin/media/upload`: Multipart upload with MIME validation (JPEG, PNG, WebP, AVIF) and 10MB limit.
+  - `GET /api/v1/admin/media`: Search, folder filter, sort, pagination.
+  - `PATCH /api/v1/admin/media/:id/rename`: File renaming with audit logging.
+  - `POST /api/v1/admin/media/:id/replace`: Physical replacement of file keeping the same ID.
+  - `DELETE /api/v1/admin/media/:id`: Reference-safe deletion (queries Properties, Projects, Services, and CMS sections; blocks deletion with 409 if referenced; allows override with `?force=true`).
+  - `POST /api/v1/admin/media/bulk-delete`: Bulk deletion with reference safety.
+- **Live Automated Verification (`backend/scripts/verify-p5.ts`) Evidence**:
+  - Valid image uploaded to `properties` folder -> 201 Created with `/uploads/properties/...` URL.
+  - Public HTTP GET on `/uploads/properties/...` verified returning HTTP 200 with `image/png`.
+  - Physical file verified on host disk.
+  - Media asset listed and renamed.
+  - Reference check verified: deletion blocked with HTTP 409 when referenced in `Property NST-REF-TEST`.
+  - Once unreferenced, asset successfully unlinked and confirmed deleted from filesystem.
+  - Unauthenticated upload blocked with HTTP 401.
+- **Build & Lint**: `npm run lint` 0 errors, `backend/` tsc build passed with 0 errors.
