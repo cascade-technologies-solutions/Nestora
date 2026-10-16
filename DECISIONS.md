@@ -9,3 +9,6 @@ This document records all architectural decisions and judgment calls made during
 | 3 | 2026-10-16 | Password Hashing | **bcryptjs** (cost 12) | Pure JS compatibility on Windows and Linux without native node-gyp build failures across container environments. |
 | 4 | 2026-10-16 | Git Workflow | **feat/production-ready** branch | Isolated from main; conventional commits made after every verified phase. Main branch remains untouched until user morning review. |
 | 5 | 2026-10-16 | Admin UX Strategy (P7X) | **Save All + Guardrails + Inline Actions** | Deliver low-click administrative workflows: inline property publishing, one-click enquiry progression, sticky CMS quick-nav, unsaved change guardrails, media drag-and-drop. |
+| 6 | 2026-10-16 | Bundle Optimization (P10) | **Route-level React.lazy Code-Splitting** | Lazy-load all Admin pages via `React.lazy` and Suspense. Shrinks initial public site bundle, accelerates first contentful paint (FCP) on mobile networks. |
+| 7 | 2026-10-16 | Testing Architecture (P10) | **Dual-Layer Integration & Live E2E** | Vitest + Supertest for fast CI-level unit/integration coverage (18 test assertions) + live network E2E runner validating real HTTP network calls against port 4000 (26 assertions). |
+
