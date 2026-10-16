@@ -141,8 +141,8 @@ const AdminEmployees = () => {
 
     // Sort order
     result.sort((a, b) => {
-      let valA = a[sortField] || '';
-      let valB = b[sortField] || '';
+      const valA = a[sortField] || '';
+      const valB = b[sortField] || '';
 
       if (sortField === 'createdAt' || sortField === 'lastLogin') {
         const timeA = valA ? new Date(valA).getTime() : 0;

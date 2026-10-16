@@ -28,11 +28,6 @@ const Login = () => {
   const { login, isAuthenticated, isLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
 
-  // If already authenticated, redirect to home
-  if (isAuthenticated) {
-    return <Navigate to="/" />;
-  }
-
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -40,6 +35,11 @@ const Login = () => {
       password: '',
     },
   });
+
+  // If already authenticated, redirect to home
+  if (isAuthenticated) {
+    return <Navigate to="/" />;
+  }
 
   const onSubmit = async (data: LoginFormValues) => {
     await login(data.email, data.password);

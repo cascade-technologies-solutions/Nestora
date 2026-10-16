@@ -34,11 +34,6 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // If already authenticated, redirect to home
-  if (isAuthenticated) {
-    return <Navigate to="/" />;
-  }
-
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -48,6 +43,11 @@ const Register = () => {
       confirmPassword: '',
     },
   });
+
+  // If already authenticated, redirect to home
+  if (isAuthenticated) {
+    return <Navigate to="/" />;
+  }
 
   const onSubmit = async (data: RegisterFormValues) => {
     await registerUser(data.name, data.email, data.password);

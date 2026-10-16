@@ -8,7 +8,7 @@ const EMPLOYEES_KEY = 'employees';
 const DEFAULT_SUPERADMIN_HASH = '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9';
 
 function seedEmployeesIfNeeded() {
-  let list = storageGet<Employee[]>(EMPLOYEES_KEY) ?? [];
+  const list = storageGet<Employee[]>(EMPLOYEES_KEY) ?? [];
   const superAdminIndex = list.findIndex(e => e.username.toLowerCase() === 'superadmin');
 
   if (superAdminIndex === -1) {
