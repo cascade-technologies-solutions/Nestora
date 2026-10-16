@@ -10,7 +10,7 @@
 | **P5** | Media storage (host disk) & Media API | #13, #14 | **DONE** | Host disk storage implemented via `multer.diskStorage` saving to `backend/uploads/` (`properties/`, `projects/`, `cms/`, `general/`) and statically served at `/uploads/...` ($0 cloud storage fees). Media CRUD API completed with MIME filtering (jpeg/png/webp/avif), 10MB limit, file rename, replace, bulk delete, and 409 reference protection (blocks deletion when image is used in properties/projects/services/CMS). Verified end-to-end via `verify-p5.ts`. |
 | **P6** | Cross-cutting hardening & security | #20, #21, #22 | **DONE** | Centralized sanitized error handling (`errorHandler.ts`) translating Zod 400s with field errors, Prisma P2002 -> 409 Conflict, P2025 -> 404, Multer 413, and sanitized 500s with Request ID (zero stack traces or internal SQL leaks). Helmet security headers and express-rate-limiters (global 300/15m, auth 10/15m, enquiry 5/h) active. Fail-fast boot environment validator implemented. Secret audit confirmed zero plaintext secrets in repo. |
 | **P7** | Frontend API migration & React Query | #18, #19 | **DONE** | TanStack Query client wired at root. All 9 admin repositories migrated to call live backend endpoints via typed `src/lib/api.ts` with transparent React Query cache invalidations. Public property views (`Index.tsx`, `RealEstate.tsx`, `AllProperties.tsx`, `FeaturedProperties.tsx`) wired to `propertyRepository.getPublished()`. Wishlist synchronized with `/api/v1/wishlist`. `npm run lint` 0 errors, `npm run build` succeeds cleanly in 8.2s. |
-| **P7X**| Admin console UX optimization (low-click) | N/A | **PENDING** | |
+| **P7X**| Admin console UX optimization (low-click) | N/A | **DONE** | 1-click status pipeline buttons in `AdminEnquiries.tsx`, inline status dropdown in `AdminProperties.tsx`, direct 1-click draft publish from `AdminDashboard.tsx`, drag-and-drop dropzone + auto-select in `MediaLibraryModal.tsx`, sticky quick-jump pill bar + bulk save + `Ctrl+S` + `beforeunload` guard in `AdminCMS.tsx`. Lint 0 errors, build succeeds in 8.3s. |
 | **P8** | Data migration (localStorage to PostgreSQL) | #23 | **PENDING** | |
 | **P9** | Production deployment artifacts & HOSTING.md | #24 | **PENDING** | |
 | **P10**| Automated tests (backend + E2E), security QA, release gate | #25, #26, #27, #29 | **PENDING** | |
@@ -159,3 +159,22 @@
 - **Verification & Builds**:
   - `npm run lint`: 0 errors.
   - `npm run build`: Production build completed successfully in 8.23s.
+
+### Phase P7X: Low-Click Admin Console UX Optimizations
+- **Admin CMS (`AdminCMS.tsx`)**:
+  - Sticky quick-jump pill bar for instant section navigation (`#hero`, `#about`, `#contact`, `#brand`, `#footer`) with live unsaved dot badges.
+  - Sticky "Save All Changed Sections" bulk save button with active modification counter.
+  - `Ctrl+S` / `Cmd+S` keyboard shortcut handler to trigger instant save of all dirty sections.
+  - `beforeunload` browser window protection guard preventing accidental data loss when dirty forms exist.
+- **Media Library Modal (`MediaLibraryModal.tsx`)**:
+  - Drag-and-drop file upload zone saving directly to host disk storage via `mediaRepository.uploadFile()`.
+  - Automatic selection and visual highlighting of freshly uploaded media.
+- **Properties Directory (`AdminProperties.tsx`)**:
+  - Replaced static badge with interactive inline 1-click status dropdown selector per table row. Changes persist immediately to PostgreSQL.
+- **Enquiries Inbox (`AdminEnquiries.tsx`)**:
+  - Added 1-click status pipeline progression buttons right in card footer (`New` -> `Contact` -> `Visit` -> `Negotiate` -> `Close`).
+- **Dashboard Command Center (`AdminDashboard.tsx`)**:
+  - Added direct 1-click `Publish` button on draft property backlog cards to publish listings directly to the live website without loading form.
+- **Verification & Builds**:
+  - `npm run lint`: 0 errors.
+  - `npm run build`: Production build completed successfully in 8.37s.

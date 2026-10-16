@@ -13,6 +13,16 @@ export const mediaRepository = {
     }
   },
 
+  async uploadFile(file: File, folder: string = 'general'): Promise<MediaAsset> {
+    const formData = new FormData();
+    formData.append('folder', folder);
+    formData.append('file', file);
+    const res = await api.post('/admin/media/upload', formData);
+    queryClient.invalidateQueries({ queryKey: ['media'] });
+    const asset = res?.asset || res;
+    return asset;
+  },
+
   async add(name: string, url: string, size: number, activeUser: string): Promise<MediaAsset> {
     // If upload is done directly via FormData endpoint in MediaLibraryModal, asset is already in DB.
     // If added manually via URL:

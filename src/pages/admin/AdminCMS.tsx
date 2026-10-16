@@ -99,7 +99,7 @@ const CMSSection = ({
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+    <div id={id} className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden scroll-mt-16">
       <div
         className="flex items-center justify-between p-5 cursor-pointer hover:bg-slate-900/80 transition-colors"
         onClick={() => setCollapsed(c => !c)}
@@ -370,6 +370,62 @@ const AdminCMS = () => {
     setMediaTarget(null);
   };
 
+  const isAnyDirty = Boolean(dirtyHero || dirtyAbout || dirtyContact || dirtyBrand || dirtyFooter);
+  const [savingAll, setSavingAll] = useState(false);
+
+  const onSaveAllChanged = async () => {
+    if (!isAnyDirty) {
+      toast({ title: 'Everything Up to Date', description: 'No unsaved modifications in any CMS section.' });
+      return;
+    }
+    setSavingAll(true);
+    try {
+      const promises: Promise<any>[] = [];
+      if (dirtyHero) promises.push(onSaveHero());
+      if (dirtyAbout) promises.push(onSaveAbout());
+      if (dirtyContact) promises.push(onSaveContact());
+      if (dirtyBrand) promises.push(onSaveBrand());
+      if (dirtyFooter) promises.push(onSaveFooter());
+      await Promise.all(promises);
+      toast({
+        title: 'All Modified Sections Saved',
+        description: 'Successfully committed all section edits to PostgreSQL.',
+      });
+    } catch (err: any) {
+      toast({
+        title: 'Bulk Save Interrupted',
+        description: err.message || 'Error occurred while saving sections.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSavingAll(false);
+    }
+  };
+
+  // Keyboard shortcut: Ctrl+S / Cmd+S
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        onSaveAllChanged();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isAnyDirty, dirtyHero, dirtyAbout, dirtyContact, dirtyBrand, dirtyFooter]);
+
+  // Unsaved changes browser prompt guard
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isAnyDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isAnyDirty]);
+
   const watchedHero = watchHero();
   const watchedAbout = watchAbout();
   const watchedBrand = watchBrand();
@@ -383,10 +439,12 @@ const AdminCMS = () => {
     );
   }
 
-  const inputClass = "bg-slate-850 border-slate-700 text-white placeholder:text-slate-600 focus:border-blue-500";
+  const inputClass = "bg-slate-855 border-slate-700 text-white placeholder:text-slate-600 focus:border-blue-500";
   const textareaClass = "w-full bg-slate-855 border border-slate-700 rounded-md p-3 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500 resize-none";
   const labelClass = "text-slate-400 text-xs font-semibold mb-1.5 block";
   const errorClass = "text-red-400 text-[10px] mt-1";
+
+  const dirtyCount = [dirtyHero, dirtyAbout, dirtyContact, dirtyBrand, dirtyFooter].filter(Boolean).length;
 
   return (
     <div className="space-y-5">
@@ -399,9 +457,9 @@ const AdminCMS = () => {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {(dirtyHero || dirtyAbout || dirtyContact || dirtyBrand || dirtyFooter) && (
+          {isAnyDirty && (
             <Badge className="text-[10px] bg-amber-950/40 text-amber-300 border border-amber-800/60 px-2 py-1 flex items-center gap-1.5">
-              <AlertTriangle className="w-3 h-3" /> You have unsaved changes
+              <AlertTriangle className="w-3 h-3" /> {dirtyCount} unsaved section{dirtyCount > 1 ? 's' : ''}
             </Badge>
           )}
           <a href="/" target="_blank" rel="noopener noreferrer">
@@ -409,6 +467,58 @@ const AdminCMS = () => {
               <Globe className="w-3.5 h-3.5" /> Preview Site
             </Button>
           </a>
+        </div>
+      </div>
+
+      {/* Sticky Quick-Jump Pill Bar & Bulk Save */}
+      <div className="sticky top-0 z-20 bg-slate-950/95 backdrop-blur-md border border-slate-800/80 rounded-xl p-3 shadow-lg flex items-center justify-between gap-3 overflow-x-auto">
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider hidden sm:inline mr-1">Quick Jump:</span>
+          {[
+            { id: 'hero', label: 'Hero', dirty: dirtyHero },
+            { id: 'about', label: 'About', dirty: dirtyAbout },
+            { id: 'contact', label: 'Contact', dirty: dirtyContact },
+            { id: 'brand', label: 'Brand', dirty: dirtyBrand },
+            { id: 'footer', label: 'Footer & Social', dirty: dirtyFooter },
+          ].map(sec => (
+            <button
+              key={sec.id}
+              type="button"
+              onClick={() => {
+                const el = document.getElementById(sec.id);
+                if (el) {
+                  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }}
+              className={cn(
+                "px-3 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 flex-shrink-0 cursor-pointer",
+                sec.dirty
+                  ? "bg-amber-950/70 text-amber-300 border border-amber-600/60 shadow-sm"
+                  : "bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 hover:border-slate-700"
+              )}
+            >
+              <span>{sec.label}</span>
+              {sec.dirty && <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <Button
+            type="button"
+            onClick={onSaveAllChanged}
+            disabled={!isAnyDirty || savingAll}
+            className={cn(
+              "rounded-lg text-xs font-semibold h-8 px-3.5 flex items-center gap-2 shadow-sm transition-all",
+              isAnyDirty
+                ? "bg-emerald-600 hover:bg-emerald-500 text-white ring-1 ring-emerald-400/50"
+                : "bg-slate-900 text-slate-600 border border-slate-800 cursor-not-allowed"
+            )}
+          >
+            {savingAll ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+            <span>{savingAll ? 'Saving All...' : isAnyDirty ? `Save All Changed (${dirtyCount})` : 'All Saved'}</span>
+            <kbd className="hidden md:inline-block ml-1 text-[9px] bg-black/40 px-1 py-0.5 rounded text-white/80 font-mono">Ctrl+S</kbd>
+          </Button>
         </div>
       </div>
 

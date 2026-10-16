@@ -55,14 +55,13 @@ export const MediaLibraryModal = ({ isOpen, onClose, onSelect, title = "Select I
     }
   }, [search, assets]);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const [isDragging, setIsDragging] = useState(false);
 
+  const processFile = async (file: File) => {
     if (!file.type.startsWith('image/')) {
       toast({
         title: "Invalid file type",
-        description: "Please upload an image file (PNG, JPG, WEBP).",
+        description: "Please upload an image file (PNG, JPG, WEBP, AVIF).",
         variant: "destructive"
       });
       return;
@@ -70,31 +69,50 @@ export const MediaLibraryModal = ({ isOpen, onClose, onSelect, title = "Select I
 
     setIsUploading(true);
     try {
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        const dataUrl = event.target?.result as string;
-        const newAsset = await mediaRepository.add(
-          file.name,
-          dataUrl,
-          file.size,
-          adminUser?.name || 'Admin'
-        );
-        toast({
-          title: "Upload Successful",
-          description: `Image "${file.name}" uploaded successfully.`
-        });
-        await loadAssets();
-        setSelectedUrl(newAsset.url);
-      };
-      reader.readAsDataURL(file);
+      const newAsset = await mediaRepository.uploadFile(file, 'general');
+      toast({
+        title: "Upload Successful",
+        description: `"${file.name}" uploaded to host storage.`
+      });
+      await loadAssets();
+      setSelectedUrl(newAsset.url);
     } catch (err: any) {
       toast({
         title: "Upload Failed",
-        description: err.message || "Something went wrong.",
+        description: err.message || "Failed to upload image to host.",
         variant: "destructive"
       });
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await processFile(file);
+    e.target.value = '';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      await processFile(file);
     }
   };
 
@@ -163,8 +181,19 @@ export const MediaLibraryModal = ({ isOpen, onClose, onSelect, title = "Select I
           <div className="space-y-4 border-r border-slate-800 pr-0 md:pr-6">
             <h3 className="text-sm font-semibold text-slate-300">Add New Media</h3>
             
-            {/* Upload */}
-            <div>
+            {/* Drag & Drop Upload Zone */}
+            <div
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={() => document.getElementById('modal-media-upload')?.click()}
+              className={cn(
+                "border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-2",
+                isDragging
+                  ? "border-blue-400 bg-blue-500/10 scale-[1.02]"
+                  : "border-slate-700 bg-slate-800/40 hover:bg-slate-800 hover:border-slate-600"
+              )}
+            >
               <input
                 type="file"
                 id="modal-media-upload"
@@ -173,15 +202,15 @@ export const MediaLibraryModal = ({ isOpen, onClose, onSelect, title = "Select I
                 onChange={handleFileUpload}
                 disabled={isUploading}
               />
-              <Button
-                type="button"
-                className="w-full bg-blue-600 hover:bg-blue-500 text-white rounded-lg flex items-center justify-center gap-2 py-5"
-                onClick={() => document.getElementById('modal-media-upload')?.click()}
-                disabled={isUploading}
-              >
+              <div className="w-9 h-9 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400">
                 {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                Upload Image
-              </Button>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-slate-200">
+                  {isUploading ? 'Uploading to host disk...' : isDragging ? 'Drop photo here to upload' : 'Click or drop photo here'}
+                </p>
+                <p className="text-[10px] text-slate-500 mt-0.5">JPEG, PNG, WebP, AVIF up to 10MB</p>
+              </div>
             </div>
 
             <div className="flex items-center text-slate-500 my-2">
