@@ -3,6 +3,15 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import { adminAuthRouter, publicAuthRouter } from './routes/authRoutes';
+import { publicPropertyRouter, adminPropertyRouter } from './routes/propertyRoutes';
+import { publicProjectRouter, adminProjectRouter } from './routes/projectRoutes';
+import { publicServiceRouter, adminServiceRouter } from './routes/serviceRoutes';
+import { publicEnquiryRouter, adminEnquiryRouter } from './routes/enquiryRoutes';
+import { publicCmsRouter, adminCmsRouter } from './routes/cmsRoutes';
+import { publicSettingsRouter, adminSettingsRouter } from './routes/settingsRoutes';
+import { adminEmployeeRouter } from './routes/employeeRoutes';
+import { adminAuditLogRouter } from './routes/auditLogRoutes';
+import { wishlistRouter } from './routes/wishlistRoutes';
 import { prisma } from './utils/prisma';
 
 dotenv.config();
@@ -33,6 +42,25 @@ app.use(express.json());
 // Auth routes
 app.use('/api/v1/admin/auth', adminAuthRouter);
 app.use('/api/v1/auth', publicAuthRouter);
+
+// Public Business routes
+app.use('/api/v1/properties', publicPropertyRouter);
+app.use('/api/v1/projects', publicProjectRouter);
+app.use('/api/v1/services', publicServiceRouter);
+app.use('/api/v1/enquiries', publicEnquiryRouter);
+app.use('/api/v1/cms', publicCmsRouter);
+app.use('/api/v1/settings', publicSettingsRouter);
+app.use('/api/v1/wishlist', wishlistRouter);
+
+// Admin Business routes
+app.use('/api/v1/admin/properties', adminPropertyRouter);
+app.use('/api/v1/admin/projects', adminProjectRouter);
+app.use('/api/v1/admin/services', adminServiceRouter);
+app.use('/api/v1/admin/enquiries', adminEnquiryRouter);
+app.use('/api/v1/admin/cms', adminCmsRouter);
+app.use('/api/v1/admin/settings', adminSettingsRouter);
+app.use('/api/v1/admin/employees', adminEmployeeRouter);
+app.use('/api/v1/admin/audit-logs', adminAuditLogRouter);
 
 // Phase 1 + 2 Core: Health Check endpoint
 app.get('/api/v1/health', async (req: Request, res: Response) => {
