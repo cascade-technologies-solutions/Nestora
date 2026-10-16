@@ -14,12 +14,24 @@ import { adminAuditLogRouter } from './routes/auditLogRoutes';
 import { adminMediaRouter } from './routes/mediaRoutes';
 import { wishlistRouter } from './routes/wishlistRoutes';
 import { UPLOAD_BASE_DIR } from './services/storageService';
+import { errorHandler } from './middleware/errorHandler';
+import {
+  helmetMiddleware,
+  globalLimiter,
+  authLimiter,
+  enquiryLimiter,
+  validateBootEnvironment,
+} from './middleware/security';
 import { prisma } from './utils/prisma';
 
 dotenv.config();
+validateBootEnvironment();
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+
+// Security Headers
+app.use(helmetMiddleware);
 
 const corsOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(',').map((o) => o.trim())
@@ -39,10 +51,17 @@ app.use(
   })
 );
 app.use(cookieParser());
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
 
 // Host Disk Media Serving (Zero cloud storage fees)
 app.use('/uploads', express.static(UPLOAD_BASE_DIR));
+
+// Global API Rate Limiter (300 requests / 15m)
+app.use('/api', globalLimiter);
+
+// Auth Rate Limiters (10 attempts / 15m)
+app.use('/api/v1/admin/auth/login', authLimiter);
+app.use('/api/v1/auth/login', authLimiter);
 
 // Auth routes
 app.use('/api/v1/admin/auth', adminAuthRouter);
@@ -52,7 +71,7 @@ app.use('/api/v1/auth', publicAuthRouter);
 app.use('/api/v1/properties', publicPropertyRouter);
 app.use('/api/v1/projects', publicProjectRouter);
 app.use('/api/v1/services', publicServiceRouter);
-app.use('/api/v1/enquiries', publicEnquiryRouter);
+app.use('/api/v1/enquiries', enquiryLimiter, publicEnquiryRouter);
 app.use('/api/v1/cms', publicCmsRouter);
 app.use('/api/v1/settings', publicSettingsRouter);
 app.use('/api/v1/wishlist', wishlistRouter);
@@ -87,6 +106,9 @@ app.get('/api/v1/health', async (req: Request, res: Response) => {
     });
   }
 });
+
+// Centralized Error Handling Middleware (Sanitized, Structured, No Stack Leaks)
+app.use(errorHandler);
 
 // Setup gracefully shutting down
 process.on('SIGINT', async () => {

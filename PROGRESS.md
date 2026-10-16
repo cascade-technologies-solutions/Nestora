@@ -8,7 +8,7 @@
 | **P3** | Granular RBAC and server-side authorization | #6, #7 | **DONE** | Server-enforced RBAC: Super Admin (all 8 permissions), Admin (6 permissions, no employees/settings), Employee (granular `EmployeePermission` overrides, default none). Frontend updated with Employee role. Automated tests prove 401 unauthenticated, 403 forbidden without permission, 200 with permission, and granular employee override activation. |
 | **P4** | Business APIs, audit logging, wishlist | #8, #9, #10, #11, #12, #15, #16, #17 | **DONE** | Full CRUD APIs for Properties (auto `NST-###` code, draft/published filter), Projects, Services, Enquiries (public submit, rate-limited, admin triage), CMS Sections (hero, about, contact, brand, footer, social + bulk-update), Settings, Employees, Wishlist, and Audit Logging. Live verification passed: draft hiding, status update, project/service operations, triage notes, wishlist add/fetch/remove, and SQL AuditLog row persistence verified. |
 | **P5** | Media storage (host disk) & Media API | #13, #14 | **DONE** | Host disk storage implemented via `multer.diskStorage` saving to `backend/uploads/` (`properties/`, `projects/`, `cms/`, `general/`) and statically served at `/uploads/...` ($0 cloud storage fees). Media CRUD API completed with MIME filtering (jpeg/png/webp/avif), 10MB limit, file rename, replace, bulk delete, and 409 reference protection (blocks deletion when image is used in properties/projects/services/CMS). Verified end-to-end via `verify-p5.ts`. |
-| **P6** | Cross-cutting hardening & security | #20, #21, #22 | **PENDING** | |
+| **P6** | Cross-cutting hardening & security | #20, #21, #22 | **DONE** | Centralized sanitized error handling (`errorHandler.ts`) translating Zod 400s with field errors, Prisma P2002 -> 409 Conflict, P2025 -> 404, Multer 413, and sanitized 500s with Request ID (zero stack traces or internal SQL leaks). Helmet security headers and express-rate-limiters (global 300/15m, auth 10/15m, enquiry 5/h) active. Fail-fast boot environment validator implemented. Secret audit confirmed zero plaintext secrets in repo. |
 | **P7** | Frontend API migration & React Query | #18, #19 | **PENDING** | |
 | **P7X**| Admin console UX optimization (low-click) | N/A | **PENDING** | |
 | **P8** | Data migration (localStorage to PostgreSQL) | #23 | **PENDING** | |
@@ -113,4 +113,25 @@
   - Reference check verified: deletion blocked with HTTP 409 when referenced in `Property NST-REF-TEST`.
   - Once unreferenced, asset successfully unlinked and confirmed deleted from filesystem.
   - Unauthenticated upload blocked with HTTP 401.
+- **Build & Lint**: `npm run lint` 0 errors, `backend/` tsc build passed with 0 errors.
+
+### Phase P6: Cross-Cutting Hardening & Security
+- **Security Headers & Rate Limiting**:
+  - `helmetMiddleware`: Configured with `crossOriginResourcePolicy: cross-origin` to safely allow hosted `/uploads` assets.
+  - `globalLimiter`: 300 requests / 15 min across all `/api` endpoints.
+  - `authLimiter`: 10 attempts / 15 min on sensitive auth routes (`/api/v1/admin/auth/login`, `/api/v1/auth/login`).
+  - `enquiryLimiter`: 5 submissions / hour per IP on `/api/v1/enquiries`.
+- **Centralized Sanitized Error Handling (`errorHandler.ts`)**:
+  - Zod validation errors mapped to structured 400 `VALIDATION_ERROR` with field details.
+  - Multer `LIMIT_FILE_SIZE` mapped to 413 `PAYLOAD_TOO_LARGE`.
+  - Prisma `P2002` mapped to 409 `DUPLICATE_RESOURCE` / `EMAIL_ALREADY_EXISTS`.
+  - Prisma `P2025` mapped to 404 `NOT_FOUND`.
+  - All 500 errors sanitized with unique Request ID; zero internal stack traces or SQL details leaked to clients.
+- **Fail-Fast Boot Validator**:
+  - `validateBootEnvironment()` checks `DATABASE_URL`, `JWT_SECRET`, and `JWT_REFRESH_SECRET` before startup.
+- **Live Verification (`backend/scripts/verify-p6.ts`) Evidence**:
+  - Helmet headers verified on live HTTP response (`x-content-type-options: nosniff`, `cross-origin-resource-policy: cross-origin`).
+  - Zod malformed property payload returned structured HTTP 400 with field details.
+  - Duplicate user registration returned HTTP 409 with unique constraint collision handling.
+  - Confirmed zero stack traces or SQL leaked in error JSON.
 - **Build & Lint**: `npm run lint` 0 errors, `backend/` tsc build passed with 0 errors.
