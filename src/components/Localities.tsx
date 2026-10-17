@@ -121,7 +121,7 @@ const Localities = () => {
       )}>
         
        <Button 
-          className="bg-Nestora-blue hover:bg-Nestora-accent text-white rounded-full px-8 py-6"
+          className="bg-brand-navy hover:bg-brand-navy/90 text-white rounded-full px-8 py-6 font-semibold shadow-md"
           onClick={handleViewAllLocalities}
         >
           View All Localities <ArrowRight className="ml-2 h-5 w-5" />
@@ -148,7 +148,7 @@ const LocalityCard = ({ locality, isVisible, delay }: LocalityCardProps) => {
   return (
     <div 
       className={cn(
-        "group relative overflow-hidden rounded-xl h-80 transition-all duration-700",
+        "group relative overflow-hidden rounded-2xl h-80 transition-all duration-500 shadow-sm hover:shadow-lg hover:-translate-y-1",
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
       )}
       style={{ transitionDelay: `${delay}ms` }}

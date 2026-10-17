@@ -383,7 +383,7 @@ const Contact = () => {
 
                     <Button 
                       type="submit" 
-                      className="bg-Nestora-blue hover:bg-Nestora-accent text-white w-full py-6 font-semibold"
+                      className="bg-brand-navy hover:bg-brand-navy/90 text-white rounded-full w-full py-6 font-semibold shadow-md"
                     >
                       Submit Project Enquiry <Send className="ml-2 h-4 w-4" />
                     </Button>

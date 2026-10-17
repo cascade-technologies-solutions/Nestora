@@ -153,7 +153,7 @@ const ProjectCard = ({ project, onClick }: ProjectCardProps) => {
 
   return (
     <div 
-      className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-subtle hover:shadow-md transition-all flex flex-col h-full cursor-pointer"
+      className="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col h-full cursor-pointer"
       onClick={onClick}
     >
       <div className="relative h-56 overflow-hidden">
@@ -163,13 +163,13 @@ const ProjectCard = ({ project, onClick }: ProjectCardProps) => {
           className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
         />
         <div className="absolute top-4 left-4">
-          <Badge className="bg-Nestora-dark/80 text-white text-xs font-semibold px-3 py-1 uppercase tracking-wider border-none">
+          <Badge className="bg-brand-navy/80 text-white text-xs font-semibold px-3 py-1 uppercase tracking-wider border-none rounded-full">
             {project.category}
           </Badge>
         </div>
         <div className="absolute top-4 right-4">
           <Badge className={cn(
-            "text-xs font-semibold px-3 py-1 flex items-center gap-1 border-none",
+            "text-xs font-semibold px-3 py-1 flex items-center gap-1 border-none rounded-full",
             isCompleted 
               ? "bg-green-600 text-white" 
               : project.status === 'In Progress'
@@ -184,7 +184,7 @@ const ProjectCard = ({ project, onClick }: ProjectCardProps) => {
 
       <div className="p-6 flex-1 flex flex-col justify-between">
         <div>
-          <h3 className="text-xl font-bold text-Nestora-dark mb-2 font-display leading-snug">{project.title}</h3>
+          <h3 className="text-xl font-bold text-brand-navy mb-2 font-display leading-snug">{project.title}</h3>
           
           <div className="flex items-center text-gray-400 text-xs mb-4">
             <MapPin className="h-3 w-3 mr-1" />
@@ -195,7 +195,7 @@ const ProjectCard = ({ project, onClick }: ProjectCardProps) => {
         </div>
 
         <div className="mt-auto">
-          <Button variant="outline" className="w-full border-Nestora-blue/20 text-Nestora-blue hover:bg-Nestora-blue/5 rounded-lg flex items-center justify-center gap-1.5 pointer-events-none">
+          <Button variant="outline" className="w-full border-brand-blue/30 text-brand-navy hover:bg-brand-blue/10 rounded-full flex items-center justify-center gap-1.5 pointer-events-none font-semibold">
             <Hammer size={14} />
             View Project Details
           </Button>

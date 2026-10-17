@@ -23,6 +23,7 @@ import Contact from "./pages/Contact";
 import Wishlist from "./pages/Wishlist";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 
 // Code-split Admin pages for optimal public initial load performance
@@ -80,6 +81,7 @@ const App = () => (
                 />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/terms" element={<Terms />} />
 
                 {/* ── Admin Routes (Lazy-loaded with Suspense fallback) ── */}
                 <Route

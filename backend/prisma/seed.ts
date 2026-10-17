@@ -163,84 +163,106 @@ async function main() {
   }
   console.log(`✅ CMS sections seeded (hero, about, contact, brand_assets, footer, social)`);
 
-  // 4. Seed Services
+  // 4. Seed Services (9 Reference Services)
   const initialServices = [
     {
-      id: 'construction',
-      title: 'Construction Works',
-      description: 'Dependable residential, commercial and general construction services. We manage the entire lifecycle of structures from planning and design alignment through to structural engineering and final execution.',
-      icon: 'Building',
-      color: 'bg-blue-600',
+      id: 'real-estate',
+      title: 'Real Estate',
+      description: 'Comprehensive property search, verified titles, buying, selling, and rental advisory across Hubli-Dharwad.',
+      icon: 'Home',
+      color: 'bg-blue-500',
       enabled: true,
       order: 1,
-      image: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      workTypes: ['Residential construction', 'Commercial construction', 'Civil works', 'Structural works', 'Project execution', 'Site development']
+      image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&q=80&w=800',
+      workTypes: ['Buy residential plots', 'Sell properties', 'Commercial leasing', 'Rental management', 'Title verification']
     },
     {
-      id: 'renovation',
-      title: 'Renovation & Repair Works',
-      description: 'Complete upgrades, layout remodelling, structural restorations, and repairs. We restore older premises, enhance modern spaces, and rectify structural defects to increase structural durability.',
-      icon: 'Wrench',
-      color: 'bg-amber-600',
+      id: 'construction',
+      title: 'Construction',
+      description: 'Turnkey residential and commercial construction with structural engineering, site supervision, and milestone delivery.',
+      icon: 'Building',
+      color: 'bg-amber-500',
       enabled: true,
       order: 2,
-      image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      workTypes: ['Home renovation', 'Commercial renovation', 'Structural repairs', 'Interior upgrades', 'Property restoration', 'Remodelling']
-    },
-    {
-      id: 'waterproofing',
-      title: 'Waterproofing Solutions',
-      description: 'Advanced chemical, membrane, and injection systems to block seepages. We protect surfaces, basements, terraces, and walls from water damage, dampness, and concrete corrosion.',
-      icon: 'ShieldCheck',
-      color: 'bg-cyan-600',
-      enabled: true,
-      order: 3,
-      image: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      workTypes: ['Terrace waterproofing', 'Roof waterproofing', 'Bathroom waterproofing', 'Wall seepage solutions', 'Structural waterproofing']
+      image: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&q=80&w=800',
+      workTypes: ['Residential construction', 'Commercial construction', 'Civil works', 'Structural engineering', 'Turnkey execution']
     },
     {
       id: 'fabrication',
-      title: 'Fabrication Works',
-      description: 'Custom metalwork, heavy iron framing, and metal installation. We fabricate architectural components, gates, structural supports, and safety enclosures to exact tolerances.',
+      title: 'Fabrication',
+      description: 'Custom structural steel, architectural metalwork, industrial frames, safety barriers, and precision metal fabrication.',
       icon: 'Hammer',
-      color: 'bg-slate-600',
+      color: 'bg-emerald-500',
+      enabled: true,
+      order: 3,
+      image: 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&q=80&w=800',
+      workTypes: ['Steel structures', 'Metal fabrication', 'Custom gates & grills', 'Industrial frames', 'Architectural metal']
+    },
+    {
+      id: 'renovation',
+      title: 'Renovation',
+      description: 'Complete home and commercial remodelling, layout restructuring, interior upgrades, and building restorations.',
+      icon: 'Hammer',
+      color: 'bg-rose-500',
       enabled: true,
       order: 4,
-      image: 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      workTypes: ['Structural fabrication', 'Metal gates & grilles', 'Industrial frames', 'Architectural metalwork', 'Safety barriers']
+      image: 'https://images.unsplash.com/photo-1581094288338-2314dddb7ecc?auto=format&fit=crop&q=80&w=800',
+      workTypes: ['Home remodelling', 'Office interior upgrades', 'Structural retrofitting', 'Space optimization', 'Facade restoration']
     },
     {
-      id: 'earthworks',
-      title: 'Earthmoving & Heavy Machinery',
-      description: 'Excavation, grading, trenching, site clearance, and machinery rental. We prepare plots, level foundations, and handle bulk earthwork safely and with experienced machine operators.',
-      icon: 'Truck',
-      color: 'bg-orange-600',
+      id: 'repair-works',
+      title: 'Repair Works',
+      description: 'Electrical, plumbing, carpentry, waterproofing repairs, and general property maintenance for homes and offices.',
+      icon: 'Wrench',
+      color: 'bg-purple-500',
       enabled: true,
       order: 5,
-      image: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      workTypes: ['Land clearing', 'Excavation & trenching', 'Soil levelling', 'Foundation earthwork', 'Debris removal']
+      image: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800',
+      workTypes: ['Electrical repairs', 'Plumbing fixes', 'Carpentry & masonry', 'Seepage rectification', 'Routine maintenance']
     },
     {
-      id: 'real-estate',
-      title: 'Real Estate & Property Buying/Selling',
-      description: 'Transparent assistance for property purchase, sales, leasing, and residential plots. We verify titles, manage negotiations, and match buyers with suitable verified properties.',
-      icon: 'Home',
-      color: 'bg-emerald-600',
+      id: 'packers-and-movers',
+      title: 'Packers And Movers',
+      description: 'Professional household shifting, office relocation, secure packing, transit insurance, and hassle-free moving support.',
+      icon: 'Truck',
+      color: 'bg-cyan-500',
       enabled: true,
       order: 6,
-      image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      workTypes: ['Property buying assistance', 'Property sale advisory', 'Residential plot sales', 'Commercial leasing', 'Valuation support']
+      image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=800',
+      workTypes: ['Household shifting', 'Corporate relocation', 'Secure multi-layer packing', 'Vehicle transportation', 'Transit insurance']
     },
     {
-      id: 'property-documentation',
-      title: 'Property Documentation & Municipal Advisory',
-      description: 'Complete guidance on municipal approvals, plan sanctions, title checks, Khata transfer, property tax verification, and legal deed execution with regulatory accuracy.',
-      icon: 'FileText',
-      color: 'bg-indigo-600',
+      id: 'security-services',
+      title: 'Security Services',
+      description: 'CCTV installation, smart access control, digital surveillance setups, and round-the-clock premises protection.',
+      icon: 'ShieldCheck',
+      color: 'bg-orange-500',
       enabled: true,
       order: 7,
-      image: 'https://images.unsplash.com/photo-1450133064473-71024230f91b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      workTypes: ['Khata registration & transfer', 'Building plan approval', 'Encumbrance certificates', 'Title scrutiny', 'Sale deed registration']
+      image: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&q=80&w=800',
+      workTypes: ['CCTV surveillance cameras', 'Smart door locks & biometric', 'Intercom & alarm systems', 'On-site security staffing', 'Annual maintenance']
+    },
+    {
+      id: 'documentation-and-approvals',
+      title: 'Documentation And Approvals',
+      description: 'Khata registration, building plan sanctions, municipal approvals, title verification, and government certifications.',
+      icon: 'FileText',
+      color: 'bg-blue-600',
+      enabled: true,
+      order: 8,
+      image: 'https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&q=80&w=800',
+      workTypes: ['Khata transfer & extract', 'Building plan sanction', 'Encumbrance certificates (EC)', 'Title deed verification', 'RERA advisory']
+    },
+    {
+      id: 'property-ads',
+      title: 'Property Ads',
+      description: 'Targeted property marketing, high-visibility digital advertising, buyer matching, and listing promotion across Hubli-Dharwad.',
+      icon: 'FileText',
+      color: 'bg-pink-500',
+      enabled: true,
+      order: 9,
+      image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&q=80&w=800',
+      workTypes: ['Digital property promotion', 'Premium yard & banner ads', 'Targeted buyer outreach', 'Social media ad campaigns', 'Lead verification']
     }
   ];
 
