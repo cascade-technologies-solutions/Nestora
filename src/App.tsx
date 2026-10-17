@@ -54,7 +54,7 @@ import { queryClient } from "./lib/queryClient";
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <BrowserRouter basename="/Nestora">
+      <BrowserRouter basename="/Nestora" future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AdminAuthProvider>
           <AuthProvider>
             <WishlistProvider>
