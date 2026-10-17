@@ -36,9 +36,9 @@ While you were resting, the full autonomous evolution of **Nestora** was complet
 
 Both the frontend dev server and the backend API daemon are already running locally and ready for you to test right now:
 
-- **Frontend URL**: [http://localhost:8080/Nestora/](http://localhost:8080/Nestora/)
+- **Frontend URL**: [http://localhost:5173/Nestora/](http://localhost:5173/Nestora/)
 - **Backend API**: [http://localhost:4000/api/v1/health](http://localhost:4000/api/v1/health) (Status: `UP`)
-- **Admin Login**: [http://localhost:8080/Nestora/admin/login](http://localhost:8080/Nestora/admin/login)
+- **Admin Login**: [http://localhost:5173/Nestora/admin/login](http://localhost:5173/Nestora/admin/login)
 
 ### Initial Super Admin Credentials
 - **Username**: `superadmin`
@@ -54,7 +54,7 @@ Both the frontend dev server and the backend API daemon are already running loca
 2. **Test Inline Property Status**:
    - Go to **Properties** (`/admin/properties`).
    - Click the status dropdown on any property row and change it from `Draft` to `Published` or `Under Negotiation`.
-   - Open the public [Real Estate](http://localhost:8080/Nestora/real-estate) page in a new tab to see it reflect live immediately.
+   - Open the public [Real Estate](http://localhost:5173/Nestora/real-estate) page in a new tab to see it reflect live immediately.
 3. **Test Host Disk Photo Upload**:
    - Open **Media Library** (`/admin/media`).
    - Drag and drop an image into the dropzone. Notice it uploads directly to `backend/uploads/` and gets an instant public `/uploads/...` URL.
