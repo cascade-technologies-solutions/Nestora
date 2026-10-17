@@ -1,10 +1,10 @@
 
 import { useState } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -16,10 +16,11 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 const loginSchema = z.object({
-  email: z.string().email({ message: 'Please enter a valid email address' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
+  email: z.string().min(1, { message: 'Please enter your email address or admin username' }),
+  password: z.string().min(1, { message: 'Password is required' }),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -27,6 +28,8 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 const Login = () => {
   const { login, isAuthenticated, isLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -42,7 +45,17 @@ const Login = () => {
   }
 
   const onSubmit = async (data: LoginFormValues) => {
-    await login(data.email, data.password);
+    const rawInput = data.email.trim();
+    // Detect if user is attempting to log into admin console with admin username
+    if (!rawInput.includes('@') || rawInput.toLowerCase() === 'superadmin' || rawInput.toLowerCase() === 'admin') {
+      toast({
+        title: "Redirecting to Admin Portal",
+        description: "Admin & staff accounts log in via the NestoraHub Admin Console.",
+      });
+      navigate('/admin/login', { replace: true });
+      return;
+    }
+    await login(rawInput, data.password);
   };
 
   return (
@@ -57,24 +70,40 @@ const Login = () => {
       </div>
       
       <div className="flex-grow flex items-center justify-center px-6 py-12">
-        <div className="w-full max-w-md space-y-8 bg-white p-8 rounded-xl shadow-subtle">
-          <div className="text-center">
+        <div className="w-full max-w-md space-y-6 bg-white p-8 rounded-xl shadow-subtle border border-slate-100">
+          {/* Admin Banner */}
+          <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 text-left flex items-center justify-between shadow-md">
+            <div>
+              <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
+                Staff & Admin Portal
+              </span>
+              <p className="text-[11px] text-slate-400 mt-0.5">Managing listings, CMS & operations?</p>
+            </div>
+            <Link to="/admin/login">
+              <Button size="sm" className="bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs px-3.5 h-8 gap-1">
+                Admin Login →
+              </Button>
+            </Link>
+          </div>
+
+          <div className="text-center pt-2">
             <h2 className="text-3xl font-bold text-Nestora-dark">Welcome Back</h2>
-            <p className="text-gray-600 mt-2">Sign in to access your wishlist and more</p>
+            <p className="text-gray-600 mt-2 text-sm">Sign in to access your saved properties and wishlist</p>
           </div>
           
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
               <FormField
                 control={form.control}
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Email Address or Admin Username</FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="Enter your email" 
-                        type="email" 
+                        placeholder="user@nestora.in or superadmin" 
+                        type="text" 
                         {...field} 
                       />
                     </FormControl>

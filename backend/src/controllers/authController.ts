@@ -49,12 +49,15 @@ export async function adminLogin(req: Request, res: Response, next: NextFunction
     }
 
     const { username, password } = parsed.data;
+    const rawUser = username.trim();
+    const usernamePart = rawUser.includes('@') ? rawUser.split('@')[0] : rawUser;
+
     const employee = await prisma.employee.findFirst({
       where: {
-        username: {
-          equals: username.trim(),
-          mode: 'insensitive',
-        },
+        OR: [
+          { username: { equals: rawUser, mode: 'insensitive' } },
+          { username: { equals: usernamePart, mode: 'insensitive' } },
+        ],
       },
       include: {
         permissions: true,

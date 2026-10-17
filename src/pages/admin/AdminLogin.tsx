@@ -69,9 +69,9 @@ const AdminLogin = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Username */}
+            {/* Username or Email */}
             <div className="space-y-1.5">
-              <Label className="text-slate-300 text-xs font-semibold">Username</Label>
+              <Label className="text-slate-300 text-xs font-semibold">Username or Email</Label>
               <Input
                 type="text"
                 value={username}
