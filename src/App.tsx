@@ -1,7 +1,8 @@
+import { Suspense, lazy } from "react";
 import { Toaster } from "../src/components/ui/toaster";
 import { Toaster as Sonner } from "../src/components/ui/sonner";
 import { TooltipProvider } from "../src/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { WishlistProvider } from "./contexts/WishlistContext";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -22,31 +23,39 @@ import Contact from "./pages/Contact";
 import Wishlist from "./pages/Wishlist";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 
-// Admin pages
-import AdminLogin from "./pages/admin/AdminLogin";
-import AdminLayout from "./pages/admin/AdminLayout";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminProperties from "./pages/admin/AdminProperties";
-import AdminPropertyForm from "./pages/admin/AdminPropertyForm";
-import AdminProjects from "./pages/admin/AdminProjects";
-import AdminProjectChanges from "./pages/admin/AdminProjectChanges";
-import AdminProjectForm from "./pages/admin/AdminProjectForm";
-import AdminServices from "./pages/admin/AdminServices";
-import AdminEnquiries from "./pages/admin/AdminEnquiries";
-import AdminMedia from "./pages/admin/AdminMedia";
-import AdminHomepage from "./pages/admin/AdminHomepage";
-import AdminCMS from "./pages/admin/AdminCMS";
-import AdminEmployees from "./pages/admin/AdminEmployees";
-import AdminSettings from "./pages/admin/AdminSettings";
+// Code-split Admin pages for optimal public initial load performance
+const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
+const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminProperties = lazy(() => import("./pages/admin/AdminProperties"));
+const AdminPropertyForm = lazy(() => import("./pages/admin/AdminPropertyForm"));
+const AdminProjects = lazy(() => import("./pages/admin/AdminProjects"));
+const AdminProjectChanges = lazy(() => import("./pages/admin/AdminProjectChanges"));
+const AdminProjectForm = lazy(() => import("./pages/admin/AdminProjectForm"));
+const AdminServices = lazy(() => import("./pages/admin/AdminServices"));
+const AdminEnquiries = lazy(() => import("./pages/admin/AdminEnquiries"));
+const AdminMedia = lazy(() => import("./pages/admin/AdminMedia"));
+const AdminHomepage = lazy(() => import("./pages/admin/AdminHomepage"));
+const AdminCMS = lazy(() => import("./pages/admin/AdminCMS"));
+const AdminEmployees = lazy(() => import("./pages/admin/AdminEmployees"));
+const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
 
-const queryClient = new QueryClient();
+const AdminLoadingFallback = () => (
+  <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-400">
+    <div className="w-8 h-8 border-3 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mb-3" />
+    <span className="text-xs uppercase tracking-wider font-medium text-slate-500">Loading Admin Console…</span>
+  </div>
+);
+
+import { queryClient } from "./lib/queryClient";
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <BrowserRouter basename="/Nestora">
+      <BrowserRouter basename="/Nestora" future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AdminAuthProvider>
           <AuthProvider>
             <WishlistProvider>
@@ -72,14 +81,24 @@ const App = () => (
                 />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/terms" element={<Terms />} />
 
-                {/* ── Admin Routes ─────────────────────────────── */}
-                <Route path="/admin/login" element={<AdminLogin />} />
+                {/* ── Admin Routes (Lazy-loaded with Suspense fallback) ── */}
+                <Route
+                  path="/admin/login"
+                  element={
+                    <Suspense fallback={<AdminLoadingFallback />}>
+                      <AdminLogin />
+                    </Suspense>
+                  }
+                />
                 <Route
                   path="/admin"
                   element={
                     <AdminProtectedRoute>
-                      <AdminLayout />
+                      <Suspense fallback={<AdminLoadingFallback />}>
+                        <AdminLayout />
+                      </Suspense>
                     </AdminProtectedRoute>
                   }
                 >

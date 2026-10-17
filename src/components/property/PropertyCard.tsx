@@ -7,9 +7,10 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { allProperties } from '@/data/properties';
+import { AdminProperty } from '@/admin/types/admin';
 
 interface PropertyCardProps {
-  property: typeof allProperties[0];
+  property: AdminProperty | typeof allProperties[0];
   isVisible: boolean;
   delay: number;
   onClick: () => void;
@@ -53,7 +54,7 @@ const PropertyCard = ({ property, isVisible, delay, onClick }: PropertyCardProps
   return (
     <div 
       className={cn(
-        "property-card bg-white rounded-xl overflow-hidden border border-gray-100 shadow-subtle transition-all duration-700 cursor-pointer hover:shadow-md w-full h-full",
+        "property-card bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm transition-all duration-300 cursor-pointer hover:shadow-lg hover:-translate-y-1 w-full h-full",
         isVisible 
           ? "opacity-100 translate-y-0" 
           : "opacity-0 translate-y-10"

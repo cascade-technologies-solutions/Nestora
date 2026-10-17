@@ -45,113 +45,101 @@ const Hero = () => {
   // Show skeleton while loading (keeps layout stable)
   if (!isLoaded || !cms) {
     return (
-      <section id="hero" className="relative min-h-[60vh] md:min-h-[45vh] lg:min-h-[50vh] flex items-center pt-24 pb-16 bg-Nestora-dark">
-        <div className="absolute inset-0 bg-black/60" />
+      <section id="hero" className="relative min-h-[70vh] flex items-center pt-24 pb-16 bg-brand-navy">
+        <div className="absolute inset-0 bg-brand-navy/80" />
       </section>
     );
   }
 
-  // Parse heading — support \n line breaks stored in CMS
-  const headingLines = cms.heroHeading.split('\\n');
+  const heroImageList = [
+    '/Nestora/hero-villa.jpg',
+    ...cms.heroImages.filter(img => !img.includes('placeholder'))
+  ];
+
+  const companyName = settings?.companyName || 'Nestora';
 
   return (
-    <section id="hero" className="relative min-h-[60vh] md:min-h-[45vh] lg:min-h-[50vh] flex items-center pt-24 pb-16">
+    <section id="hero" className="relative min-h-[70vh] md:min-h-[75vh] lg:min-h-[80vh] flex items-center pt-28 pb-20 overflow-hidden">
       {/* Background Images Carousel */}
       <div className="absolute inset-0 overflow-hidden">
-        {cms.heroImages.map((img, index) => (
+        {heroImageList.map((img, index) => (
           <div
             key={index}
             className={cn(
               'absolute inset-0 transition-opacity duration-1000 ease-in-out',
-              activeIndex === index ? 'opacity-100' : 'opacity-0'
+              activeIndex % heroImageList.length === index ? 'opacity-100' : 'opacity-0'
             )}
           >
-            <div className="absolute inset-0 bg-black/50" />
             <img
               src={img}
-              alt="Engineering and Construction Infrastructure"
-              className="w-full h-full object-cover"
+              alt="Hubli-Dharwad Premium Properties"
+              className="w-full h-full object-cover object-center scale-100"
             />
           </div>
         ))}
+
+        {/* Dual Gradient Overlay Matching Reference */}
+        <div className="absolute inset-0 bg-gradient-to-r from-brand-navy/95 via-brand-navy/70 to-brand-navy/20 md:w-4/5 lg:w-3/5" />
+        <div className="absolute inset-0 bg-brand-navy/25 mix-blend-multiply" />
       </div>
 
       {/* Hero Content */}
-      <div className="relative w-full max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-20 lg:py-24">
-        <div className={cn('max-w-4xl', isLoaded && 'animate-fade-in animation-delay-200')}>
-          <div className="inline-flex items-center rounded-none bg-Nestora-accent px-4 py-1.5 mb-6">
-            <span className="text-Nestora-dark text-xs md:text-sm font-bold tracking-widest uppercase">
-              Construction • Renovation • Real Estate
-            </span>
-          </div>
-
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold font-display text-white mb-6 leading-[1.1] tracking-tight drop-shadow-sm">
-            {headingLines.map((line, i) => (
-              <span key={i}>
-                {line}
-                {i < headingLines.length - 1 && <br />}
-              </span>
-            ))}
-          </h1>
-
-          <p className="text-gray-100 text-lg md:text-xl lg:text-2xl mb-10 max-w-2xl font-medium leading-relaxed drop-shadow-sm">
-            {cms.heroDescription}
+      <div className="relative w-full max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-16">
+        <div className={cn('max-w-3xl', isLoaded && 'animate-fade-in animation-delay-200')}>
+          {/* Reference Sub-headline / Kicker */}
+          <p className="text-white text-lg sm:text-xl md:text-2xl font-medium tracking-wide mb-2 drop-shadow-sm">
+            Find Your Dream Property
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 items-center">
-            {cms.ctaButtons.map((btn, i) => {
-              if (btn.variant === 'whatsapp') {
-                return (
-                  <a
-                    key={i}
-                    href={whatsappUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full sm:w-auto"
-                  >
-                    <Button className="bg-Nestora-dark hover:bg-gray-800 text-white rounded-none px-8 py-7 text-base font-bold shadow-lg w-full flex items-center justify-center gap-2">
-                      <Phone size={18} className="text-Nestora-accent" />
-                      {btn.label}
-                    </Button>
-                  </a>
-                );
-              }
-              if (btn.variant === 'primary') {
-                return (
-                  <Link key={i} to={btn.href} className="w-full sm:w-auto">
-                    <Button className="bg-Nestora-accent hover:bg-yellow-500 text-Nestora-dark font-extrabold rounded-none px-10 py-7 text-base shadow-lg w-full transition-transform hover:-translate-y-0.5">
-                      {btn.label} <ArrowRight className="ml-2 h-5 w-5" />
-                    </Button>
-                  </Link>
-                );
-              }
-              return (
-                <Link key={i} to={btn.href} className="w-full sm:w-auto">
-                  <Button
-                    variant="outline"
-                    className="bg-white/10 hover:bg-white/20 text-white border-white/30 rounded-none px-10 py-7 font-bold text-base w-full backdrop-blur-sm transition-transform hover:-translate-y-0.5"
-                  >
-                    {btn.label}
-                  </Button>
-                </Link>
-              );
-            })}
+          {/* Primary Wordmark */}
+          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black font-display text-white leading-none tracking-tight drop-shadow-md mb-2">
+            {companyName.toUpperCase()}
+          </h1>
 
-            {/* Fallback: show WhatsApp if settings has phone and no whatsapp button in CMS */}
-            {whatsappActive &&
-              !cms.ctaButtons.some((b) => b.variant === 'whatsapp') && (
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full sm:w-auto"
+          {/* Golden Yellow Subline */}
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-wider text-brand-yellow uppercase drop-shadow-sm mb-4">
+            HUBLI-DHARWAD PROPERTIES
+          </h2>
+
+          {/* Pipe-separated Action Tagline */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-white font-semibold text-sm sm:text-base md:text-lg mb-8 tracking-wide drop-shadow-sm">
+            <span>Buy</span>
+            <span className="text-brand-yellow font-bold">|</span>
+            <span>Sell</span>
+            <span className="text-brand-yellow font-bold">|</span>
+            <span>Invest</span>
+            <span className="text-brand-yellow font-bold">|</span>
+            <span className="text-brand-yellow font-bold">Build Your Future</span>
+          </div>
+
+          <p className="text-slate-100/90 text-sm sm:text-base md:text-lg mb-8 max-w-xl font-normal leading-relaxed drop-shadow-xs">
+            {cms.heroDescription || "Explore verified residential homes, commercial plots, and end-to-end property solutions across Hubli-Dharwad with our trusted team."}
+          </p>
+
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 items-center">
+            <Link to="/real-estate" className="w-full sm:w-auto">
+              <Button className="bg-brand-yellow hover:bg-yellow-400 text-brand-navy font-black rounded-full px-8 py-6 text-base shadow-lg transition-transform hover:-translate-y-0.5 w-full flex items-center justify-center gap-2">
+                Explore Properties <ArrowRight className="h-5 w-5 stroke-[2.5]" />
+              </Button>
+            </Link>
+
+            {whatsappActive && (
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto"
+              >
+                <Button
+                  variant="outline"
+                  className="bg-white/10 hover:bg-white/20 text-white border-white/60 rounded-full px-8 py-6 font-bold text-base w-full backdrop-blur-sm transition-transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
                 >
-                  <Button className="bg-Nestora-dark hover:bg-gray-800 text-white rounded-none px-8 py-7 text-base font-bold shadow-lg w-full flex items-center justify-center gap-2">
-                    <Phone size={18} className="text-Nestora-accent" />
-                    WhatsApp Enquiry
-                  </Button>
-                </a>
-              )}
+                  <Phone size={18} className="text-brand-yellow" />
+                  Make an Enquiry
+                </Button>
+              </a>
+            )}
           </div>
         </div>
       </div>

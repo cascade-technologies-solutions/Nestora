@@ -4,7 +4,7 @@
   "description": "Nestora API backend",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "ts-node src/server.ts",
+    "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
     "test": "vitest run",
@@ -41,6 +41,7 @@
     "prisma": "^5.2.0",
     "supertest": "^6.3.4",
     "ts-node": "^10.9.1",
+    "tsx": "^4.23.15",
     "typescript": "^5.2.2",
     "vitest": "^1.4.0"
   }

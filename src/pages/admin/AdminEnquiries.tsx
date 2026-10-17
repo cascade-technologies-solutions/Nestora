@@ -311,12 +311,55 @@ const AdminEnquiries = () => {
                       <span>{formatDistanceToNow(new Date(enq.createdAt), { addSuffix: true })}</span>
                     </div>
 
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild onClick={e => e.stopPropagation()}>
-                        <Button variant="ghost" size="icon" className="w-7 h-7 text-slate-500 hover:text-white rounded">
-                          <MoreVertical className="w-3.5 h-3.5" />
+                    {/* 1-Click Status Pipeline Progression */}
+                    <div className="flex items-center gap-1.5">
+                      {enq.status === 'New' && (
+                        <Button
+                          size="xs"
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); handleQuickStatus(enq.id, 'Contacted'); }}
+                          className="h-6 text-[10px] px-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded flex items-center gap-1"
+                        >
+                          <Phone className="w-3 h-3" /> Contact
                         </Button>
-                      </DropdownMenuTrigger>
+                      )}
+                      {enq.status === 'Contacted' && (
+                        <Button
+                          size="xs"
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); handleQuickStatus(enq.id, 'Site Visit'); }}
+                          className="h-6 text-[10px] px-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border border-blue-500/40 rounded flex items-center gap-1"
+                        >
+                          <Calendar className="w-3 h-3" /> Visit
+                        </Button>
+                      )}
+                      {enq.status === 'Site Visit' && (
+                        <Button
+                          size="xs"
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); handleQuickStatus(enq.id, 'Negotiation'); }}
+                          className="h-6 text-[10px] px-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/40 rounded flex items-center gap-1"
+                        >
+                          <TrendingUp className="w-3 h-3" /> Negotiate
+                        </Button>
+                      )}
+                      {enq.status === 'Negotiation' && (
+                        <Button
+                          size="xs"
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); handleQuickStatus(enq.id, 'Closed'); }}
+                          className="h-6 text-[10px] px-2 bg-green-500/20 hover:bg-green-500/30 text-green-300 border border-green-500/40 rounded flex items-center gap-1"
+                        >
+                          <CheckCircle className="w-3 h-3" /> Close
+                        </Button>
+                      )}
+
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild onClick={e => e.stopPropagation()}>
+                          <Button variant="ghost" size="icon" className="w-7 h-7 text-slate-500 hover:text-white rounded">
+                            <MoreVertical className="w-3.5 h-3.5" />
+                          </Button>
+                        </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="bg-slate-900 border-slate-800 text-slate-200">
                         <DropdownMenuItem onClick={() => handleQuickStatus(enq.id, 'Contacted')} className="text-xs hover:bg-slate-800 focus:bg-slate-800 py-1.5 cursor-pointer gap-2">
                           <Phone className="w-3.5 h-3.5 text-amber-400" /> Mark Contacted
@@ -334,6 +377,7 @@ const AdminEnquiries = () => {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
+                </div>
                 </CardContent>
               </Card>
             );

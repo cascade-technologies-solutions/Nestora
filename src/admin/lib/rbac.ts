@@ -11,10 +11,10 @@ async function findEmployeeByIdentifier(identifier?: string | null): Promise<Emp
   return all.find(e => e.name.toLowerCase() === identifier.toLowerCase()) ?? null;
 }
 
-export async function requireRole(identifier: string | undefined | null, allowedRoles: Array<'Admin' | 'Super Admin'>): Promise<Employee> {
+export async function requireRole(identifier: string | undefined | null, allowedRoles: Array<Employee['role']>): Promise<Employee> {
   const emp = await findEmployeeByIdentifier(identifier);
   if (!emp) throw new Error('Unauthorized: admin account not found');
-  if (!allowedRoles.includes(emp.role as any)) throw new Error('Permission denied');
+  if (!allowedRoles.includes(emp.role)) throw new Error('Permission denied');
   return emp;
 }
 

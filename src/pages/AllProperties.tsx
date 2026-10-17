@@ -9,11 +9,14 @@ import { useToast } from '@/hooks/use-toast';
 import { useWishlist, WishlistProperty } from '@/contexts/WishlistContext';
 import PropertyDetails from '@/components/PropertyDetails';
 import { allProperties, isPropertyInPriceRange } from '@/data/properties';
+import { propertyRepository } from '@/admin/repositories/propertyRepository';
+import { AdminProperty } from '@/admin/types/admin';
 
 const AllProperties = () => {
   const [isVisible, setIsVisible] = useState(false);
-  const [filteredProperties, setFilteredProperties] = useState(allProperties);
-  const [selectedProperty, setSelectedProperty] = useState<typeof allProperties[0] | null>(null);
+  const [baseProperties, setBaseProperties] = useState<(AdminProperty | typeof allProperties[0])[]>(allProperties);
+  const [filteredProperties, setFilteredProperties] = useState<(AdminProperty | typeof allProperties[0])[]>(allProperties);
+  const [selectedProperty, setSelectedProperty] = useState<AdminProperty | typeof allProperties[0] | null>(null);
   const [isPropertyDetailsOpen, setIsPropertyDetailsOpen] = useState(false);
   const location = useLocation();
   const { toast } = useToast();
@@ -40,6 +43,17 @@ const AllProperties = () => {
     '₹5Cr - ₹10Cr',
     '₹10Cr+'
   ];
+
+  useEffect(() => {
+    propertyRepository.getPublished().then(data => {
+      if (data && data.length > 0) {
+        setBaseProperties(data);
+        setFilteredProperties(data);
+      }
+    }).catch(err => {
+      console.warn('Using local properties fallback:', err);
+    });
+  }, []);
   
   useEffect(() => {
     setIsVisible(true);
@@ -50,7 +64,7 @@ const AllProperties = () => {
     const priceFilter = params.get('price');
     const typeFilter = params.get('type');
     
-    let filtered = [...allProperties];
+    let filtered = [...baseProperties];
     
     // Apply type filter if present
     if (typeFilter) {
@@ -87,9 +101,9 @@ const AllProperties = () => {
         variant: "destructive",
       });
     }
-  }, [location.search, toast]);
+  }, [location.search, toast, baseProperties]);
 
-  const handlePropertyClick = (property: typeof allProperties[0]) => {
+  const handlePropertyClick = (property: AdminProperty | typeof allProperties[0]) => {
     setSelectedProperty(property);
     setIsPropertyDetailsOpen(true);
   };
@@ -98,7 +112,7 @@ const AllProperties = () => {
     e.preventDefault();
     
     // Apply filters to the properties
-    let filtered = [...allProperties];
+    let filtered = [...baseProperties];
     
     // Filter by property type
     if (selectedType) {
@@ -138,7 +152,7 @@ const AllProperties = () => {
     setSelectedType('');
     setSelectedLocation('');
     setSelectedPriceRange('');
-    setFilteredProperties(allProperties);
+    setFilteredProperties(baseProperties);
   };
 
   return (
@@ -327,7 +341,7 @@ const AllProperties = () => {
 };
 
 interface PropertyCardProps {
-  property: typeof allProperties[0];
+  property: AdminProperty | typeof allProperties[0];
   isVisible: boolean;
   delay: number;
   onClick: () => void;

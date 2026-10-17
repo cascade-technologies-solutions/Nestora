@@ -13,7 +13,7 @@ export const PERMISSIONS = {
 
 export type Permission = typeof PERMISSIONS[keyof typeof PERMISSIONS];
 
-const ROLE_PERMISSIONS: Record<EmployeeRoleType, Permission[]> = {
+export const ROLE_PERMISSIONS: Record<EmployeeRoleType, Permission[]> = {
   'Super Admin': Object.values(PERMISSIONS),
   'Admin': [
     PERMISSIONS.MANAGE_PROPERTIES,
@@ -23,22 +23,36 @@ const ROLE_PERMISSIONS: Record<EmployeeRoleType, Permission[]> = {
     PERMISSIONS.MANAGE_MEDIA,
     PERMISSIONS.MANAGE_CMS,
   ],
+  'Employee': [],
 };
 
 /**
- * Check if a specific role has a given permission.
+ * Check if a specific role or user has a given permission.
+ * If userPermissions array is passed (from /auth/me or session), it is checked directly.
  */
-export function hasPermission(role: EmployeeRoleType | undefined | null, permission: Permission): boolean {
+export function hasPermission(
+  role: EmployeeRoleType | undefined | null,
+  permission: Permission,
+  userPermissions?: string[]
+): boolean {
   if (!role) return false;
+  if (role === 'Super Admin') return true;
+  if (Array.isArray(userPermissions) && userPermissions.length > 0) {
+    return userPermissions.includes(permission);
+  }
   return ROLE_PERMISSIONS[role]?.includes(permission) ?? false;
 }
 
 /**
  * Assert that a role has a specific permission, throwing an error if not.
- * Useful for repository layer checks.
  */
-export function assertPermission(role: EmployeeRoleType | undefined | null, permission: Permission, actionDescription: string = 'perform this action'): void {
-  if (!hasPermission(role, permission)) {
+export function assertPermission(
+  role: EmployeeRoleType | undefined | null,
+  permission: Permission,
+  actionDescription: string = 'perform this action',
+  userPermissions?: string[]
+): void {
+  if (!hasPermission(role, permission, userPermissions)) {
     throw new Error(`Access Denied: You do not have permission to ${actionDescription}.`);
   }
 }

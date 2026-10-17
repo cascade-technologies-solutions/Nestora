@@ -3,14 +3,15 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import PropertyCard from './PropertyCard';
 import { allProperties } from '@/data/properties';
+import { AdminProperty } from '@/admin/types/admin';
 
 interface PropertyListProps {
-  properties: typeof allProperties;
+  properties: (AdminProperty | typeof allProperties[0])[];
   isVisible: boolean;
   showFiltered: boolean;
   showAllProperties: boolean;
   handleResetFilters: () => void;
-  handlePropertyClick: (property: typeof allProperties[0]) => void;
+  handlePropertyClick: (property: AdminProperty | typeof allProperties[0]) => void;
   handleViewAllClick: () => void;
 }
 

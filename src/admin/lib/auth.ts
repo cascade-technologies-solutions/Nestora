@@ -39,11 +39,20 @@ export function getAdminSession(): AdminSession | null {
   }
 }
 
-export function setAdminSession(username: string, name: string, role: AdminSession['role'], remember: boolean): void {
+export function setAdminSession(
+  username: string,
+  name: string,
+  role: AdminSession['role'],
+  remember: boolean,
+  permissions?: string[],
+  id?: string
+): void {
   const session: AdminSession = {
+    id,
     username,
     name,
     role,
+    permissions,
     loginTime: Date.now(),
   };
   const stringified = JSON.stringify(session);

@@ -581,9 +581,28 @@ const AdminProperties = () => {
                       {/* Price */}
                       <td className="p-4 font-bold text-white">{property.price}</td>
 
-                      {/* Status */}
-                      <td className="p-4">
-                        <StatusBadge status={property.status} />
+                      {/* Status - Inline 1-Click Dropdown */}
+                      <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                        <select
+                          value={property.status}
+                          onChange={(e) => handleToggleStatus(property.id, e.target.value as PropertyStatus)}
+                          className={cn(
+                            "text-[11px] font-semibold rounded-md px-2 py-1 border transition-colors cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500",
+                            property.status === 'published' && "bg-green-950/50 text-green-300 border-green-800/60",
+                            property.status === 'draft' && "bg-slate-800 text-slate-300 border-slate-700",
+                            property.status === 'under_negotiation' && "bg-amber-950/50 text-amber-300 border-amber-800/60",
+                            property.status === 'sold' && "bg-purple-950/50 text-purple-300 border-purple-800/60",
+                            property.status === 'rented' && "bg-blue-950/50 text-blue-300 border-blue-800/60",
+                            property.status === 'archived' && "bg-red-950/50 text-red-400 border-red-800/60"
+                          )}
+                        >
+                          <option value="draft" className="bg-slate-900 text-slate-300">Draft</option>
+                          <option value="published" className="bg-slate-900 text-green-300">Published</option>
+                          <option value="under_negotiation" className="bg-slate-900 text-amber-300">Under Negotiation</option>
+                          <option value="sold" className="bg-slate-900 text-purple-300">Sold</option>
+                          <option value="rented" className="bg-slate-900 text-blue-300">Rented</option>
+                          <option value="archived" className="bg-slate-900 text-red-400">Archived</option>
+                        </select>
                       </td>
 
                       {/* Featured */}

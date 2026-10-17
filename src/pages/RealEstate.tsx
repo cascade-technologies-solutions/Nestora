@@ -234,7 +234,7 @@ const RealEstate = () => {
                   
                   <Button 
                     type="submit" 
-                    className="bg-Nestora-blue hover:bg-Nestora-blue/90 text-white rounded-lg h-12 px-6 w-full md:w-auto"
+                    className="bg-brand-navy hover:bg-brand-navy/90 text-white rounded-full h-12 px-8 w-full md:w-auto font-semibold shadow-md"
                   >
                     <Search className="mr-2 h-4 w-4" />
                     Search Properties
@@ -326,7 +326,7 @@ const PropertyCard = ({ property, isVisible, delay, onClick }: PropertyCardProps
   return (
     <div 
       className={cn(
-        "bg-white rounded-xl overflow-hidden border border-gray-100 shadow-subtle transition-all duration-700 cursor-pointer hover:shadow-md flex flex-col h-full justify-between",
+        "bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm transition-all duration-300 cursor-pointer hover:shadow-lg hover:-translate-y-1 flex flex-col h-full justify-between",
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
       )}
       style={{ transitionDelay: `${delay}ms` }}

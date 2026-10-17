@@ -66,12 +66,32 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
+				brand: {
+					navy: '#0A2463',
+					blue: '#3E92CC',
+					yellow: '#FFD700',
+					dark: '#0A2463',
+					muted: '#64748B',
+					light: '#F8FAFC',
+				},
+				pastel: {
+					blue: '#E6F2FF',
+					yellow: '#FFF8E6',
+					green: '#E6FFE6',
+					red: '#FFE6E6',
+					purple: '#F2E6FF',
+					teal: '#E6FFFA',
+					pink: '#FFE6F0',
+					peach: '#FFF3E0',
+				},
 				Nestora: {
-					blue: '#1D4ED8', // Corporate Blue
-					dark: '#0F172A', // Deep Navy
+					blue: '#3E92CC', // Modern Brand Blue
+					dark: '#0A2463', // Deep Navy
 					light: '#F8FAFC', // Light Neutral
 					muted: '#64748B', // Neutral Gray
-					accent: '#F59E0B', // Warm Yellow / Gold
+					accent: '#FFD700', // Vibrant Gold / Yellow
+					navy: '#0A2463',
+					yellow: '#FFD700',
 				},
 				slate: {
 					850: '#182235',
@@ -81,7 +101,9 @@ export default {
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				sm: 'calc(var(--radius) - 4px)',
+				'2xl': '1.25rem',
+				'3xl': '1.75rem',
 			},
 			keyframes: {
 				'accordion-down': {

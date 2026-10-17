@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { propertyRepository } from '@/admin/repositories/propertyRepository';
 import { projectRepository } from '@/admin/repositories/projectRepository';
@@ -26,6 +26,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
+import { useAdminAuth } from '@/contexts/AdminAuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -43,8 +45,11 @@ const AdminDashboard = () => {
   const [enquiries, setEnquiries] = useState({ total: 0, new: 0, contacted: 0, siteVisit: 0, negotiation: 0, closed: 0 });
   const [employees, setEmployees] = useState({ total: 0, active: 0 });
 
-  useEffect(() => {
-    const fetchData = async () => {
+  const { adminUser } = useAdminAuth();
+  const { toast } = useToast();
+
+  const fetchData = useCallback(async () => {
+    try {
       const [allProps, allProjects, allServices, allEnquiries, allEmployees, recentLogs] = await Promise.all([
         propertyRepository.getAll(),
         projectRepository.getAll(),
@@ -66,7 +71,7 @@ const AdminDashboard = () => {
       });
 
       // Filter drafts and new enquiries for operational lists
-      setDraftProperties(allProps.filter(p => p.status === 'draft').slice(0, 3));
+      setDraftProperties(allProps.filter(p => p.status === 'draft').slice(0, 4));
       setNewEnquiries(allEnquiries.filter(e => e.status === 'New').slice(0, 3));
 
       // Projects
@@ -100,11 +105,31 @@ const AdminDashboard = () => {
       });
 
       setLogs(recentLogs);
+    } finally {
       setLoading(false);
-    };
-
-    fetchData();
+    }
   }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handlePublishDraftDirect = async (id: string, title: string) => {
+    try {
+      await propertyRepository.setStatus(id, 'published', adminUser?.name || 'Admin');
+      toast({
+        title: "Property Published",
+        description: `"${title}" is now published and live on the public website.`,
+      });
+      fetchData();
+    } catch (err: any) {
+      toast({
+        title: "Publish Failed",
+        description: err.message || "Failed to publish property.",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (loading) {
     return (
@@ -338,12 +363,22 @@ const AdminDashboard = () => {
                           <p className="font-semibold truncate text-slate-200">{p.title}</p>
                           <span className="text-[10px] text-slate-500">{p.propertyCode} · {p.category}</span>
                         </div>
-                        <Button 
-                          onClick={() => navigate(`/admin/properties/edit/${p.id}`)}
-                          className="h-7 text-[10px] px-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-850 text-slate-300 rounded"
-                        >
-                          Publish
-                        </Button>
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          <Button 
+                            type="button"
+                            onClick={() => handlePublishDraftDirect(p.id, p.title)}
+                            className="h-7 text-[10px] px-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded font-medium shadow-sm transition-colors"
+                          >
+                            1-Click Publish
+                          </Button>
+                          <Button 
+                            type="button"
+                            onClick={() => navigate(`/admin/properties/edit/${p.id}`)}
+                            className="h-7 text-[10px] px-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded"
+                          >
+                            Edit
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
