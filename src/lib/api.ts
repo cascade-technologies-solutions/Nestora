@@ -40,6 +40,9 @@ export class ApiError extends Error {
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api/v1').replace(/\/$/, '');
 
+export const NEON_AUTH_BASE_URL = import.meta.env.VITE_NEON_AUTH_BASE_URL || '';
+export const NEON_REALTIME_URL = import.meta.env.VITE_NEON_REALTIME_URL || '';
+
 // In-memory token storage with localStorage fallback
 let adminAccessToken: string | null = null;
 let publicAccessToken: string | null = null;

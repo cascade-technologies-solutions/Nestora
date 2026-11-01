@@ -247,14 +247,18 @@ describe('Nestora Backend Automated Test Suite', () => {
         .attach('files', pngBuffer, `test_media_${testSuffix}.png`);
 
       expect(uploadRes.status).toBe(201);
-      expect(uploadRes.body.data.url).toMatch(/^\/uploads\/properties\//);
+      expect(uploadRes.body.data.url).toMatch(/(\/uploads\/properties\/|storage)/);
       uploadedMediaId = uploadRes.body.data.id;
       uploadedMediaPath = uploadRes.body.data.filePath;
 
-      // Verify static HTTP access
-      const staticRes = await request(app).get(uploadRes.body.data.url);
-      expect(staticRes.status).toBe(200);
-      expect(staticRes.headers['content-type']).toContain('image/png');
+      // Verify static HTTP access or S3 URL
+      if (uploadRes.body.data.url.startsWith('/uploads/')) {
+        const staticRes = await request(app).get(uploadRes.body.data.url);
+        expect(staticRes.status).toBe(200);
+        expect(staticRes.headers['content-type']).toContain('image/png');
+      } else {
+        expect(uploadRes.body.data.url).toContain('https://');
+      }
     });
 
     it('should reject deletion with 409 Conflict if image is referenced in property', async () => {

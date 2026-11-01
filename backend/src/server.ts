@@ -95,24 +95,70 @@ app.use('/api/v1/admin/audit-logs', adminAuditLogRouter);
 app.use('/api/v1/admin/media', adminMediaRouter);
 app.use('/api/v1/admin/migrate', adminMigrationRouter);
 
-// Phase 1 + 2 Core: Health Check endpoint
+// Health Check & Neon Integration Status endpoint
 app.get('/api/v1/health', async (req: Request, res: Response) => {
   try {
     // Attempt real database connection validation
     await prisma.$queryRaw`SELECT 1`;
     res.status(200).json({ 
       status: 'UP', 
-      message: 'Backend connects securely to database.',
+      message: 'Backend connects securely to Neon database.',
+      services: {
+        postgres: 'UP',
+        auth: process.env.NEON_AUTH_BASE_URL ? 'CONFIGURED' : 'UNCONFIGURED',
+        storage: process.env.AWS_ENDPOINT_URL_S3 ? 'CONFIGURED' : 'LOCAL',
+        realtime: process.env.NEON_REALTIME_URL ? 'CONFIGURED' : 'UNCONFIGURED',
+      },
       timestamp: new Date().toISOString()
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Database connection failed', error);
     res.status(500).json({ 
       status: 'DOWN', 
       error: 'Database connection failure',
+      message: error?.message,
       timestamp: new Date().toISOString()
     });
   }
+});
+
+// Neon Cloud Services Info & Health inspection endpoint
+app.get('/api/v1/neon/status', async (req: Request, res: Response) => {
+  let dbStatus = 'DOWN';
+  let dbError = null;
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    dbStatus = 'UP';
+  } catch (err: any) {
+    dbError = err?.message;
+  }
+
+  res.status(200).json({
+    success: true,
+    data: {
+      provider: 'Neon Lakebase',
+      services: {
+        postgres: {
+          status: dbStatus,
+          error: dbError,
+        },
+        auth: {
+          status: process.env.NEON_AUTH_BASE_URL ? 'UP' : 'DISABLED',
+          baseUrl: process.env.NEON_AUTH_BASE_URL || null,
+        },
+        objectStorage: {
+          status: process.env.AWS_ENDPOINT_URL_S3 ? 'UP' : 'LOCAL',
+          endpoint: process.env.AWS_ENDPOINT_URL_S3 || null,
+          bucket: process.env.S3_BUCKET || 'uploads',
+        },
+        realtime: {
+          status: process.env.NEON_REALTIME_URL ? 'UP' : 'DISABLED',
+          url: process.env.NEON_REALTIME_URL || null,
+        },
+      },
+      timestamp: new Date().toISOString(),
+    },
+  });
 });
 
 // Centralized Error Handling Middleware (Sanitized, Structured, No Stack Leaks)
