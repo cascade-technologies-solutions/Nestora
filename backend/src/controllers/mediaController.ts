@@ -2,7 +2,7 @@ import path from 'path';
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../utils/prisma';
 import { logAudit } from '../utils/auditLogger';
-import { deleteLocalFile, getPublicUrl } from '../services/storageService';
+import { deleteLocalFile, getPublicUrl, persistUploadedFile } from '../services/storageService';
 
 // ── Check if media URL is referenced in website content ───────────────────────
 
@@ -79,7 +79,7 @@ export async function uploadMedia(req: Request, res: Response, next: NextFunctio
     for (const file of allFiles) {
       const actualFolder = path.basename(file.destination) || 'general';
       savedFolder = actualFolder;
-      const url = getPublicUrl(actualFolder, file.filename);
+      const url = await persistUploadedFile(file, actualFolder);
       const asset = await prisma.mediaAsset.create({
         data: {
           name: file.originalname,
