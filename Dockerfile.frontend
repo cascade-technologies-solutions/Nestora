@@ -3,6 +3,13 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Build arguments for production base path and backend API proxying
+ARG VITE_BASE_PATH="/"
+ARG VITE_API_BASE_URL="/api/v1"
+
+ENV VITE_BASE_PATH=$VITE_BASE_PATH
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+
 COPY package*.json ./
 RUN npm ci
 
@@ -16,5 +23,6 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 COPY deploy/nginx/default.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
+EXPOSE 443
 
 CMD ["nginx", "-g", "daemon off;"]

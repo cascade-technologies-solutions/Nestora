@@ -1,0 +1,88 @@
+# HTTP: Redirect all traffic to HTTPS (preserving ACME challenge)
+server {
+    listen 80;
+    server_name ${DOMAIN_NAME};
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+# HTTPS: Production SSL Server
+server {
+    listen 443 ssl http2;
+    server_name ${DOMAIN_NAME};
+    client_max_body_size 25M;
+
+    # SSL Certificates (Let's Encrypt)
+    ssl_certificate /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${DOMAIN_NAME}/privkey.pem;
+
+    # Modern SSL configuration
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1d;
+    ssl_session_tickets off;
+
+    # Gzip compression
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_proxied any;
+    gzip_types text/plain text/css text/xml application/json application/javascript application/xml+rss application/atom+xml image/svg+xml;
+
+    # Security headers
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    # Static media uploads from host disk volume with high-efficiency caching
+    location /uploads/ {
+        alias /app/uploads/;
+        autoindex off;
+        expires 30d;
+        add_header Cache-Control "public, max-age=2592000, no-transform";
+        access_log off;
+    }
+
+    # Backend API reverse proxy
+    location /api/ {
+        proxy_pass http://backend:4000/api/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+        proxy_read_timeout 60s;
+    }
+
+    # Frontend Single Page Application (SPA)
+    location / {
+        root /usr/share/nginx/html;
+        index index.html;
+        try_files $uri $uri/ /index.html;
+
+        # Cache static assets (JS, CSS, images) with hashed filenames
+        location ~* \.(?:css|js|woff2?|svg|ico|png|jpg|jpeg|webp|avif)$ {
+            expires 1y;
+            add_header Cache-Control "public, max-age=31536000, immutable";
+            access_log off;
+        }
+
+        # Do not cache index.html to ensure fresh updates
+        location = /index.html {
+            add_header Cache-Control "no-cache, no-store, must-revalidate";
+        }
+    }
+}

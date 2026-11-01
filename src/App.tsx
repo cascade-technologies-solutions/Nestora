@@ -52,10 +52,12 @@ const AdminLoadingFallback = () => (
 
 import { queryClient } from "./lib/queryClient";
 
+const appBasename = import.meta.env.BASE_URL.replace(/\/$/, "") || "";
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <BrowserRouter basename="/Nestora" future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <BrowserRouter basename={appBasename} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AdminAuthProvider>
           <AuthProvider>
             <WishlistProvider>

@@ -34,8 +34,9 @@ const PORT = process.env.PORT || 4000;
 // Security Headers
 app.use(helmetMiddleware);
 
-const corsOrigins = process.env.CORS_ORIGINS
-  ? process.env.CORS_ORIGINS.split(',').map((o) => o.trim())
+const rawCors = process.env.CORS_ORIGINS || process.env.CORS_ORIGIN || process.env.CLIENT_URL;
+const corsOrigins = rawCors
+  ? rawCors.split(',').map((o) => o.trim())
   : ['http://localhost:8080', 'http://localhost:5173'];
 
 app.use(
