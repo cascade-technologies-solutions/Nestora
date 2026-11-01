@@ -34,8 +34,9 @@ const PORT = process.env.PORT || 4000;
 // Security Headers
 app.use(helmetMiddleware);
 
-const corsOrigins = process.env.CORS_ORIGINS
-  ? process.env.CORS_ORIGINS.split(',').map((o) => o.trim())
+const rawCors = process.env.CORS_ORIGINS || process.env.CORS_ORIGIN || process.env.CLIENT_URL;
+const corsOrigins = rawCors
+  ? rawCors.split(',').map((o) => o.trim())
   : ['http://localhost:8080', 'http://localhost:5173'];
 
 app.use(
@@ -43,7 +44,12 @@ app.use(
     origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
       // allow requests with no origin like curl or mobile apps
       if (!origin) return callback(null, true);
-      if (corsOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+      if (
+        corsOrigins.includes('*') ||
+        corsOrigins.indexOf(origin) !== -1 ||
+        corsOrigins.some((allowed) => allowed && (origin === allowed || origin.includes(allowed.replace(/^https?:\/\//, '')))) ||
+        process.env.NODE_ENV !== 'production'
+      ) {
         return callback(null, true);
       }
       return callback(new Error('CORS policy: Not allowed by CORS'));

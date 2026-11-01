@@ -34,6 +34,7 @@ services:
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       CLIENT_URL: ${CLIENT_URL:-http://localhost}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost,https://localhost}
       UPLOAD_DIR: uploads
     volumes:
       # Host disk storage mount: zero cloud costs, persists across all container updates
@@ -50,15 +51,21 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.frontend
+      args:
+        VITE_BASE_PATH: "/"
+        VITE_API_BASE_URL: "/api/v1"
     container_name: nestora_prod_frontend
     restart: always
     ports:
       - "80:80"
+      - "443:443"
     depends_on:
       - backend
     volumes:
       # Mount uploads directory directly to Nginx for fast static streaming
       - ./backend/uploads:/app/uploads:ro
+      - ./deploy/certbot/www:/var/www/certbot:ro
+      - ./deploy/certbot/conf:/etc/letsencrypt:ro
     networks:
       - nestora_network
 
