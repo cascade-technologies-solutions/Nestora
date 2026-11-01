@@ -120,3 +120,4 @@ This guide takes Nestora live on the internet using modern cloud platforms that 
 
 * **Render Free Inactivity**: Free Render instances sleep after 15 minutes of inactivity. When someone visits the site after a period of dormancy, the first API request takes ~30–45 seconds to wake up the server. Once awake, all subsequent requests are instantaneous.
 * **Alternative Zero-CC Frontend**: If you prefer **Netlify**, the project also includes `netlify.toml` for 1-click Netlify imports.
+

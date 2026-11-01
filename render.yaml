@@ -30,3 +30,4 @@ services:
         value: local
       - key: DATABASE_URL
         sync: false # Paste your Neon.tech or Supabase connection string here
+
