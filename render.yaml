@@ -27,7 +27,25 @@ services:
       - key: CORS_ORIGINS
         value: "*"
       - key: STORAGE_PROVIDER
-        value: local
+        value: s3
+      - key: AWS_ENDPOINT_URL_S3
+        value: https://br-old-glade-b3ysfmud.storage.c-4.ap-southeast-1.aws.neon.tech
+      - key: AWS_ACCESS_KEY_ID
+        value: nak_live_e2dc92c76fc34dbcb6cc16d05cbdfceb
+      - key: AWS_SECRET_ACCESS_KEY
+        value: nsk_live_2412ae0abd97372d7d582f71608d5ec3bd2599b3046821e8406b54e7f3d16a97
+      - key: AWS_REGION
+        value: ap-southeast-1
+      - key: S3_BUCKET
+        value: uploads
+      - key: NEON_AUTH_BASE_URL
+        value: https://ep-gentle-night-b3lvix2i.neonauth.c-4.ap-southeast-1.aws.neon.tech/neondb/auth
+      - key: NEON_REALTIME_URL
+        value: https://ep-gentle-night-b3lvix2i.rt.c-4.ap-southeast-1.aws.neon.tech/
+      - key: NEON_REALTIME_SECRET
+        value: nrt_live_1T8mHdChi09spjUeVDqd1xIfjRc301d65HOijHQL2E-g
       - key: DATABASE_URL
-        sync: false # Paste your Neon.tech or Supabase connection string here
+        value: postgresql://neondb_owner:npg_zO72XnmIuNpx@ep-gentle-night-b3lvix2i.c-4.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+      - key: DATABASE_URL_POOLED
+        value: postgresql://neondb_owner:npg_zO72XnmIuNpx@ep-gentle-night-b3lvix2i-pooler.c-4.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
 
