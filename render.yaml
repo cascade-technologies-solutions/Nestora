@@ -1,0 +1,32 @@
+# ==============================================================================
+# Nestora — Render Blueprint Deployment Specification
+# Deploys Nestora Backend API to Render's Free Web Service Tier ($0/mo)
+# ==============================================================================
+
+services:
+  - type: web
+    name: nestora-backend
+    env: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install && npm run build
+    startCommand: npm run migrate && npm run seed && npm start
+    healthCheckPath: /api/v1/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: SEED_SUPERADMIN_USERNAME
+        value: superadmin
+      - key: SEED_SUPERADMIN_PASSWORD
+        value: NestoraSuperAdmin2026!
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: STORAGE_PROVIDER
+        value: local
+      - key: DATABASE_URL
+        sync: false # Paste your Neon.tech or Supabase connection string here

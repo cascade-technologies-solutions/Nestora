@@ -149,3 +149,4 @@ echo "1. Ensure port 80 and 443 are allowed in Oracle Cloud VCN Ingress Rules."
 echo "2. When you attach a domain, run:"
 echo "   sudo bash deploy/oracle/enable-ssl.sh yourdomain.com admin@yourdomain.com"
 echo "=========================================================="
+

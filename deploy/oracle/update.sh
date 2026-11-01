@@ -23,3 +23,4 @@ echo "🌱 Running database migrations..."
 docker compose -f docker-compose.prod.yml exec -T backend npx prisma migrate deploy
 
 echo "✅ Nestora updated successfully!"
+

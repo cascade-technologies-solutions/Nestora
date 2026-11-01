@@ -66,3 +66,4 @@ echo "🌐 Public URL:   https://$DOMAIN"
 echo "🔑 Admin URL:    https://$DOMAIN/admin/login"
 echo "🔄 Auto-renewal: Configured weekly on Monday at 2:00 AM."
 echo "=========================================================="
+

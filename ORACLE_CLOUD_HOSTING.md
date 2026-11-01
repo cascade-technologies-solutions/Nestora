@@ -190,3 +190,4 @@ docker compose -f docker-compose.prod.yml logs -f frontend
 # View database logs
 docker compose -f docker-compose.prod.yml logs -f postgres
 ```
+

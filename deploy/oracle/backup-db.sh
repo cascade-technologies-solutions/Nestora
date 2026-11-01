@@ -36,3 +36,4 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] Backup created: $BACKUP_FILE ($FILE_SIZE)"
 # Delete backups older than 14 days
 find "$BACKUP_DIR" -type f -name "nestora_db_*.sql.gz" -mtime +14 -delete
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Cleaned up backups older than 14 days."
+
