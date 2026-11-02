@@ -14,8 +14,8 @@ export const adminMediaRouter = Router();
 
 adminMediaRouter.use(requireAuth, requirePermission('manage:media'));
 
-// Upload files (supports field 'files' or 'file')
-adminMediaRouter.post('/upload', upload.array('files', 10), uploadMedia);
+// Upload files (supports field 'files', 'file', or any multipart field)
+adminMediaRouter.post('/upload', upload.any(), uploadMedia);
 
 // List media assets
 adminMediaRouter.get('/', getMediaAssets);

@@ -5,6 +5,7 @@ import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -174,6 +175,9 @@ export const MediaLibraryModal = ({ isOpen, onClose, onSelect, title = "Select I
       <DialogContent className="max-w-4xl bg-slate-900 border-slate-800 text-white rounded-xl">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold font-display text-white">{title}</DialogTitle>
+          <DialogDescription className="text-slate-400 text-sm">
+            Select, upload or attach photos for property galleries and listings.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="grid md:grid-cols-3 gap-6 mt-2">

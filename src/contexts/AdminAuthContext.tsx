@@ -28,10 +28,20 @@ export const AdminAuthProvider = ({ children }: { children: React.ReactNode }) =
 
     async function initSession() {
       const cached = getAdminSession();
-      if (cached) {
-        setIsAdminAuthenticated(true);
-        setAdminUser(cached);
+      const existingToken = localStorage.getItem('nestora_admin_access_token');
+
+      // If token is missing, require a clean login
+      if (!existingToken || !cached) {
+        clearAdminSession();
+        setAdminToken(null, null);
+        setIsAdminAuthenticated(false);
+        setAdminUser(null);
+        setIsLoading(false);
+        return;
       }
+
+      setIsAdminAuthenticated(true);
+      setAdminUser(cached);
 
       try {
         // Verify session with the real backend /me endpoint
@@ -68,7 +78,7 @@ export const AdminAuthProvider = ({ children }: { children: React.ReactNode }) =
         // If /me failed and no cached session or token expired, clear
         if (isMounted) {
           clearAdminSession();
-          setAdminToken(null);
+          setAdminToken(null, null);
           setIsAdminAuthenticated(false);
           setAdminUser(null);
         }
@@ -115,7 +125,7 @@ export const AdminAuthProvider = ({ children }: { children: React.ReactNode }) =
       }
 
       // Store Bearer token in memory & storage
-      setAdminToken(res.accessToken);
+      setAdminToken(res.accessToken, (res as any).refreshToken);
 
       const session: AdminSession = {
         id: res.user.id,
@@ -141,10 +151,11 @@ export const AdminAuthProvider = ({ children }: { children: React.ReactNode }) =
 
   const adminLogout = useCallback(async () => {
     try {
-      await api.post('/admin/auth/logout', {}, { authType: 'admin', skipRefresh: true }).catch(() => {});
+      const rf = typeof window !== 'undefined' ? localStorage.getItem('nestora_admin_refresh_token') : null;
+      await api.post('/admin/auth/logout', { refreshToken: rf }, { authType: 'admin', skipRefresh: true }).catch(() => {});
     } finally {
       clearAdminSession();
-      setAdminToken(null);
+      setAdminToken(null, null);
       setIsAdminAuthenticated(false);
       setAdminUser(null);
     }

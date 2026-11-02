@@ -18,8 +18,8 @@ const isProd = process.env.NODE_ENV === 'production';
 function getRefreshTokenCookieOptions(maxAgeDays = 7) {
   return {
     httpOnly: true,
-    secure: isProd,
-    sameSite: 'strict' as const,
+    secure: true,
+    sameSite: (isProd ? 'none' : 'lax') as 'none' | 'lax',
     maxAge: maxAgeDays * 24 * 60 * 60 * 1000,
     path: '/',
   };
@@ -133,6 +133,7 @@ export async function adminLogin(req: Request, res: Response, next: NextFunction
       success: true,
       data: {
         accessToken,
+        refreshToken,
         user: {
           id: employee.id,
           username: employee.username,
@@ -171,6 +172,7 @@ export async function adminRefresh(req: Request, res: Response, next: NextFuncti
         success: true,
         data: {
           accessToken,
+          refreshToken: newRefreshToken,
           payload,
         },
       });
@@ -354,6 +356,7 @@ export async function publicLogin(req: Request, res: Response, next: NextFunctio
       success: true,
       data: {
         accessToken,
+        refreshToken,
         user: {
           id: user.id,
           email: user.email,
@@ -389,6 +392,7 @@ export async function publicRefresh(req: Request, res: Response, next: NextFunct
         success: true,
         data: {
           accessToken,
+          refreshToken: newRefreshToken,
           payload,
         },
       });

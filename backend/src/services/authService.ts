@@ -26,8 +26,8 @@ export function hashToken(token: string): string {
   return crypto.createHash('sha256').update(token).digest('hex');
 }
 
-export function generateAccessToken(payload: TokenPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' });
+export function generateAccessToken(payload: TokenPayload, expiresIn: jwt.SignOptions['expiresIn'] = '24h'): string {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn });
 }
 
 export function generateRefreshTokenString(): string {
