@@ -6,7 +6,23 @@ import { z } from 'zod';
 import { projectRepository } from '@/admin/repositories/projectRepository';
 import { MediaLibraryModal } from '@/components/admin/MediaLibraryModal';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
-import { ArrowLeft, Loader2, ImageOff, Images, Plus, Trash2, Home, Sparkles, MapPin, Info, Search, Settings } from 'lucide-react';
+import {
+  ArrowLeft,
+  Loader2,
+  ImageOff,
+  Images,
+  Plus,
+  Trash2,
+  Home,
+  Sparkles,
+  MapPin,
+  Info,
+  Search,
+  Settings,
+  ChevronLeft,
+  ChevronRight,
+  Check,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,6 +36,7 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { resolveImageUrl } from '@/lib/image';
 
 const projectSchema = z.object({
   title: z.string().min(3, 'Title is required'),
@@ -57,6 +74,7 @@ const AdminProjectForm = () => {
     reset,
     watch,
     setValue,
+    trigger,
     control
   } = useForm<ProjectFormValues>({
     resolver: zodResolver(projectSchema),
@@ -137,18 +155,86 @@ const AdminProjectForm = () => {
   };
 
   const handleSelectMedia = (url: string) => {
+    const resolved = resolveImageUrl(url);
     if (!mediaTarget) return;
     if (mediaTarget.type === 'hero') {
-      setValue('image', url, { shouldDirty: true });
+      setValue('image', resolved, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
     } else if (mediaTarget.type === 'before') {
-      setValue('beforeImage', url, { shouldDirty: true });
+      setValue('beforeImage', resolved, { shouldDirty: true });
     } else if (mediaTarget.type === 'after') {
-      setValue('afterImage', url, { shouldDirty: true });
+      setValue('afterImage', resolved, { shouldDirty: true });
     } else if (mediaTarget.type === 'gallery' && mediaTarget.index !== undefined) {
-      setValue(`gallery.${mediaTarget.index}`, url, { shouldDirty: true });
+      setValue(`gallery.${mediaTarget.index}`, resolved, { shouldDirty: true });
     }
     setMediaTarget(null);
   };
+
+  const tabs: { id: TabId; label: string; icon: React.ReactNode }[] = [
+    { id: 'general', label: 'General', icon: <Info className="w-3.5 h-3.5" /> },
+    { id: 'gallery', label: 'Gallery', icon: <Plus className="w-3.5 h-3.5" /> },
+    { id: 'beforeafter', label: 'Before / After', icon: <Images className="w-3.5 h-3.5" /> },
+    { id: 'description', label: 'Description', icon: <Info className="w-3.5 h-3.5" /> },
+    { id: 'status', label: 'Status', icon: <Settings className="w-3.5 h-3.5" /> }
+  ];
+
+  const currentStepIndex = tabs.findIndex(t => t.id === activeTab);
+
+  const handleNext = async () => {
+    let isValid = true;
+    if (activeTab === 'general') {
+      isValid = await trigger(['title', 'location', 'image']);
+    } else if (activeTab === 'description') {
+      isValid = await trigger(['description']);
+    }
+
+    if (isValid && currentStepIndex < tabs.length - 1) {
+      setActiveTab(tabs[currentStepIndex + 1].id);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handlePrev = () => {
+    if (currentStepIndex > 0) {
+      setActiveTab(tabs[currentStepIndex - 1].id);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const renderTabNavigation = () => (
+    <div className="flex items-center justify-between pt-5 border-t border-slate-800 mt-6">
+      <Button
+        type="button"
+        variant="outline"
+        disabled={currentStepIndex === 0}
+        onClick={handlePrev}
+        className="border-slate-700 bg-slate-850 text-slate-300 hover:text-white hover:bg-slate-800 text-xs font-semibold px-4"
+      >
+        <ChevronLeft className="w-3.5 h-3.5 mr-1" /> Previous Step
+      </Button>
+
+      <span className="text-[11px] text-slate-400 font-semibold tracking-wider uppercase hidden sm:inline">
+        Step {currentStepIndex + 1} of {tabs.length} &bull; {tabs[currentStepIndex].label}
+      </span>
+
+      {currentStepIndex < tabs.length - 1 ? (
+        <Button
+          type="button"
+          onClick={handleNext}
+          className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-5 flex items-center gap-1.5 shadow-md"
+        >
+          Next: {tabs[currentStepIndex + 1].label} <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+        </Button>
+      ) : (
+        <Button
+          type="submit"
+          disabled={saving}
+          className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-6 flex items-center gap-1.5 shadow-md"
+        >
+          {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : isEdit ? 'Update Details' : 'Create Project'}
+        </Button>
+      )}
+    </div>
+  );
 
   if (loading) {
     return (
@@ -180,29 +266,38 @@ const AdminProjectForm = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-slate-800 overflow-x-auto gap-2 text-slate-400">
-        {[
-          { id: 'general', label: 'General', icon: <Info className="w-4 h-4" /> },
-          { id: 'gallery', label: 'Gallery', icon: <Plus className="w-4 h-4" /> },
-          { id: 'beforeafter', label: 'Before / After', icon: <Images className="w-4 h-4" /> },
-          { id: 'description', label: 'Description', icon: <Info className="w-4 h-4" /> },
-          { id: 'status', label: 'Status', icon: <Settings className="w-4 h-4" /> }
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => setActiveTab(tab.id as TabId)}
-            className={cn(
-              "flex items-center gap-2 px-4 py-3 text-xs font-semibold uppercase tracking-wider border-b-2 border-transparent transition-all whitespace-nowrap",
-              activeTab === tab.id
-                ? "border-blue-500 text-blue-400 font-bold"
-                : "hover:text-white hover:border-slate-800"
-            )}
-          >
-            {tab.icon}
-            {tab.label}
-          </button>
-        ))}
+      <div className="flex border border-slate-800 bg-slate-900/80 p-1.5 rounded-xl overflow-x-auto gap-1 text-slate-400">
+        {tabs.map((tab, idx) => {
+          const isCurrent = activeTab === tab.id;
+          const isPassed = idx < currentStepIndex;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id as TabId)}
+              className={cn(
+                "flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg transition-all whitespace-nowrap",
+                isCurrent
+                  ? "bg-blue-600 text-white font-bold shadow-md"
+                  : isPassed
+                  ? "text-slate-300 hover:bg-slate-800"
+                  : "text-slate-500 hover:text-slate-300 hover:bg-slate-800/50"
+              )}
+            >
+              <span className={cn(
+                "w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold",
+                isCurrent
+                  ? "bg-white text-blue-600"
+                  : isPassed
+                  ? "bg-emerald-500/20 text-emerald-400"
+                  : "bg-slate-800 text-slate-500"
+              )}>
+                {isPassed ? <Check className="w-2.5 h-2.5" /> : idx + 1}
+              </span>
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -264,7 +359,7 @@ const AdminProjectForm = () => {
                 />
                 {watchedValues.image && (
                   <div className="h-40 rounded-lg overflow-hidden border border-slate-850 bg-slate-950">
-                    <img src={watchedValues.image} alt="Hero showcase preview" className="w-full h-full object-cover" />
+                    <img src={resolveImageUrl(watchedValues.image)} alt="Hero showcase preview" className="w-full h-full object-cover" />
                   </div>
                 )}
               </div>
@@ -281,6 +376,8 @@ const AdminProjectForm = () => {
                 </Label>
               </div>
             </div>
+
+            {renderTabNavigation()}
           </div>
         )}
 
@@ -318,7 +415,7 @@ const AdminProjectForm = () => {
                       />
                       {watchedValues.gallery?.[idx] && (
                         <div className="h-24 w-36 rounded overflow-hidden border border-slate-800 bg-slate-900 mt-1">
-                          <img src={watchedValues.gallery[idx]} alt="Gallery preview" className="w-full h-full object-cover" />
+                          <img src={resolveImageUrl(watchedValues.gallery[idx])} alt="Gallery preview" className="w-full h-full object-cover" />
                         </div>
                       )}
                     </div>
@@ -335,6 +432,8 @@ const AdminProjectForm = () => {
                 ))}
               </div>
             )}
+
+            {renderTabNavigation()}
           </div>
         )}
 
@@ -357,7 +456,7 @@ const AdminProjectForm = () => {
                 />
                 {watchedValues.beforeImage && (
                   <div className="h-32 rounded-lg overflow-hidden border border-slate-850 bg-slate-950">
-                    <img src={watchedValues.beforeImage} alt="Before preview" className="w-full h-full object-cover" />
+                    <img src={resolveImageUrl(watchedValues.beforeImage)} alt="Before preview" className="w-full h-full object-cover" />
                   </div>
                 )}
               </div>
@@ -376,11 +475,13 @@ const AdminProjectForm = () => {
                 />
                 {watchedValues.afterImage && (
                   <div className="h-32 rounded-lg overflow-hidden border border-slate-850 bg-slate-950">
-                    <img src={watchedValues.afterImage} alt="After preview" className="w-full h-full object-cover" />
+                    <img src={resolveImageUrl(watchedValues.afterImage)} alt="After preview" className="w-full h-full object-cover" />
                   </div>
                 )}
               </div>
             </div>
+
+            {renderTabNavigation()}
           </div>
         )}
 
@@ -398,6 +499,8 @@ const AdminProjectForm = () => {
               />
               {errors.description && <p className="text-red-400 text-[10px] mt-1">{errors.description.message}</p>}
             </div>
+
+            {renderTabNavigation()}
           </div>
         )}
 
@@ -422,26 +525,51 @@ const AdminProjectForm = () => {
                 </SelectContent>
               </Select>
             </div>
+
+            {renderTabNavigation()}
           </div>
         )}
 
         {/* BUTTON ACTIONS */}
-        <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
+        <div className="flex items-center justify-between pt-4 border-t border-slate-800 bg-slate-900/60 p-4 rounded-xl">
           <Button
             type="button"
             variant="ghost"
             onClick={() => navigate('/admin/projects')}
-            className="text-slate-400 hover:text-white hover:bg-slate-900"
+            className="text-slate-400 hover:text-white hover:bg-slate-800 text-xs"
           >
-            Cancel
+            Cancel & Exit
           </Button>
-          <Button
-            type="submit"
-            disabled={saving}
-            className="bg-blue-600 hover:bg-blue-500 text-white rounded-lg px-8"
-          >
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : isEdit ? 'Update Details' : 'Create Project'}
-          </Button>
+
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={currentStepIndex === 0}
+              onClick={handlePrev}
+              className="border-slate-700 bg-slate-850 text-slate-300 hover:text-white hover:bg-slate-800 text-xs font-semibold px-4"
+            >
+              <ChevronLeft className="w-3.5 h-3.5 mr-1" /> Previous
+            </Button>
+
+            {currentStepIndex < tabs.length - 1 ? (
+              <Button
+                type="button"
+                onClick={handleNext}
+                className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-5"
+              >
+                Next Step <ChevronRight className="w-3.5 h-3.5 ml-1" />
+              </Button>
+            ) : null}
+
+            <Button
+              type="submit"
+              disabled={saving}
+              className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-7 text-xs font-semibold shadow-md"
+            >
+              {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : isEdit ? 'Update Details' : 'Create Project'}
+            </Button>
+          </div>
         </div>
       </form>
 

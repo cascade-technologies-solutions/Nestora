@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { allProperties } from '@/data/properties';
 import { AdminProperty } from '@/admin/types/admin';
+import { resolveImageUrl } from '@/lib/image';
 
 interface PropertyCardProps {
   property: AdminProperty | typeof allProperties[0];
@@ -64,7 +65,7 @@ const PropertyCard = ({ property, isVisible, delay, onClick }: PropertyCardProps
     >
       <div className="relative img-hover-zoom h-48 sm:h-56 md:h-64">
         <img 
-          src={property.image} 
+          src={resolveImageUrl(property.image)} 
           alt={property.title} 
           className="w-full h-full object-cover"
         />

@@ -14,7 +14,7 @@ import { adminAuditLogRouter } from './routes/auditLogRoutes';
 import { adminMediaRouter } from './routes/mediaRoutes';
 import { adminMigrationRouter } from './routes/migrationRoutes';
 import { wishlistRouter } from './routes/wishlistRoutes';
-import { UPLOAD_BASE_DIR } from './services/storageService';
+import { UPLOAD_BASE_DIR, streamStoredFile } from './services/storageService';
 import { errorHandler } from './middleware/errorHandler';
 import {
   helmetMiddleware,
@@ -88,8 +88,15 @@ app.get('/', (req: Request, res: Response) => {
   });
 });
 
-// Host Disk Media Serving (Zero cloud storage fees)
+// Media Serving (Serves local disk files or streams transparently from Neon S3 Object Storage)
 app.use('/uploads', express.static(UPLOAD_BASE_DIR));
+app.get('/uploads/:folder/:filename', async (req: Request, res: Response) => {
+  const { folder, filename } = req.params;
+  const streamed = await streamStoredFile(folder, filename, res);
+  if (!streamed && !res.headersSent) {
+    res.status(404).json({ error: 'Image file not found' });
+  }
+});
 
 // Global API Rate Limiter (300 requests / 15m)
 app.use('/api', globalLimiter);

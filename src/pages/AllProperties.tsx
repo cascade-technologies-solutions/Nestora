@@ -11,6 +11,7 @@ import PropertyDetails from '@/components/PropertyDetails';
 import { allProperties, isPropertyInPriceRange } from '@/data/properties';
 import { propertyRepository } from '@/admin/repositories/propertyRepository';
 import { AdminProperty } from '@/admin/types/admin';
+import { resolveImageUrl } from '@/lib/image';
 
 const AllProperties = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -383,7 +384,7 @@ const PropertyCard = ({ property, isVisible, delay, onClick }: PropertyCardProps
     >
       <div className="relative img-hover-zoom h-64">
         <img 
-          src={property.image} 
+          src={resolveImageUrl(property.image)} 
           alt={property.title} 
           className="w-full h-full object-cover"
         />

@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useWishlist } from '@/contexts/WishlistContext';
 import { useToast } from '@/hooks/use-toast';
+import { resolveImageUrl } from '@/lib/image';
 
 const Wishlist = () => {
   const { wishlist, removeFromWishlist } = useWishlist();
@@ -109,7 +110,7 @@ const WishlistPropertyCard = ({ property, isVisible, delay, onRemove }: Wishlist
     >
       <div className="relative img-hover-zoom h-64">
         <img 
-          src={property.image} 
+          src={resolveImageUrl(property.image)} 
           alt={property.title} 
           className="w-full h-full object-cover"
         />

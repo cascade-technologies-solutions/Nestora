@@ -25,6 +25,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useWishlist, WishlistProperty } from '@/contexts/WishlistContext';
 import { useToast } from '@/hooks/use-toast';
+import { resolveImageUrl } from '@/lib/image';
 
 const Index = () => {
   const [properties, setProperties] = useState<AdminProperty[]>([]);
@@ -122,7 +123,7 @@ const Index = () => {
                     <div>
                       <div className="h-60 overflow-hidden relative">
                         <img 
-                          src={property.image} 
+                          src={resolveImageUrl(property.image)} 
                           alt={property.title} 
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                         />
@@ -262,7 +263,7 @@ const Index = () => {
                   <div>
                     <div className="h-60 overflow-hidden relative">
                       <img 
-                        src={project.image} 
+                        src={resolveImageUrl(project.image)} 
                         alt={project.title} 
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                       />
