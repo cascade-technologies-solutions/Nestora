@@ -17,7 +17,6 @@ export const mediaRepository = {
     const formData = new FormData();
     formData.append('folder', folder);
     formData.append('file', file);
-    formData.append('files', file);
     const res = await api.post('/admin/media/upload', formData, { authType: 'admin' });
     queryClient.invalidateQueries({ queryKey: ['media'] });
     const asset = res?.asset || res;

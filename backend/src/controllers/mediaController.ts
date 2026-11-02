@@ -73,12 +73,39 @@ export async function uploadMedia(req: Request, res: Response, next: NextFunctio
       return;
     }
 
+    // Deduplicate files in this request (e.g. if client sent both 'file' and 'files')
+    const uniqueFiles: Express.Multer.File[] = [];
+    const seenFilesInRequest = new Set<string>();
+    for (const f of allFiles) {
+      const key = `${f.originalname}_${f.size}`;
+      if (!seenFilesInRequest.has(key)) {
+        seenFilesInRequest.add(key);
+        uniqueFiles.push(f);
+      }
+    }
+
     const uploadedAssets: any[] = [];
     let savedFolder = 'general';
 
-    for (const file of allFiles) {
+    for (const file of uniqueFiles) {
       const actualFolder = path.basename(file.destination) || 'general';
       savedFolder = actualFolder;
+
+      // Prevent duplicate upload if identical asset was uploaded within the last 10 seconds
+      const recentDuplicate = await prisma.mediaAsset.findFirst({
+        where: {
+          name: file.originalname,
+          size: file.size,
+          folder: actualFolder,
+          createdAt: { gte: new Date(Date.now() - 10000) },
+        },
+      });
+
+      if (recentDuplicate) {
+        uploadedAssets.push(recentDuplicate);
+        continue;
+      }
+
       const url = await persistUploadedFile(file, actualFolder);
       const asset = await prisma.mediaAsset.create({
         data: {
