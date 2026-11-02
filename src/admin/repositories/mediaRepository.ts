@@ -5,7 +5,7 @@ import type { MediaAsset } from '../types/admin';
 export const mediaRepository = {
   async getAll(): Promise<MediaAsset[]> {
     try {
-      const res = await api.get('/admin/media');
+      const res = await api.get('/admin/media', { authType: 'admin' });
       const list: MediaAsset[] = Array.isArray(res) ? res : res.data || [];
       return list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     } catch {
@@ -17,7 +17,8 @@ export const mediaRepository = {
     const formData = new FormData();
     formData.append('folder', folder);
     formData.append('file', file);
-    const res = await api.post('/admin/media/upload', formData);
+    formData.append('files', file);
+    const res = await api.post('/admin/media/upload', formData, { authType: 'admin' });
     queryClient.invalidateQueries({ queryKey: ['media'] });
     const asset = res?.asset || res;
     return asset;

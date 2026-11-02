@@ -57,22 +57,34 @@ export const NEON_REALTIME_URL = import.meta.env.VITE_NEON_REALTIME_URL || '';
 
 // In-memory token storage with localStorage fallback
 let adminAccessToken: string | null = null;
+let adminRefreshToken: string | null = null;
 let publicAccessToken: string | null = null;
+let publicRefreshToken: string | null = null;
 
 try {
   adminAccessToken = localStorage.getItem('nestora_admin_access_token');
+  adminRefreshToken = localStorage.getItem('nestora_admin_refresh_token');
   publicAccessToken = localStorage.getItem('nestora_public_access_token');
+  publicRefreshToken = localStorage.getItem('nestora_public_refresh_token');
 } catch {
   // In-memory only
 }
 
-export function setAdminToken(token: string | null) {
+export function setAdminToken(token: string | null, refreshToken?: string | null) {
   adminAccessToken = token;
+  if (refreshToken !== undefined) {
+    adminRefreshToken = refreshToken;
+  }
   try {
     if (token) {
       localStorage.setItem('nestora_admin_access_token', token);
     } else {
       localStorage.removeItem('nestora_admin_access_token');
+    }
+    if (refreshToken) {
+      localStorage.setItem('nestora_admin_refresh_token', refreshToken);
+    } else if (refreshToken === null) {
+      localStorage.removeItem('nestora_admin_refresh_token');
     }
   } catch {
     // Ignore storage errors
@@ -80,16 +92,24 @@ export function setAdminToken(token: string | null) {
 }
 
 export function getAdminToken(): string | null {
-  return adminAccessToken;
+  return adminAccessToken || (typeof window !== 'undefined' ? localStorage.getItem('nestora_admin_access_token') : null);
 }
 
-export function setPublicToken(token: string | null) {
+export function setPublicToken(token: string | null, refreshToken?: string | null) {
   publicAccessToken = token;
+  if (refreshToken !== undefined) {
+    publicRefreshToken = refreshToken;
+  }
   try {
     if (token) {
       localStorage.setItem('nestora_public_access_token', token);
     } else {
       localStorage.removeItem('nestora_public_access_token');
+    }
+    if (refreshToken) {
+      localStorage.setItem('nestora_public_refresh_token', refreshToken);
+    } else if (refreshToken === null) {
+      localStorage.removeItem('nestora_public_refresh_token');
     }
   } catch {
     // Ignore storage errors
@@ -97,7 +117,7 @@ export function setPublicToken(token: string | null) {
 }
 
 export function getPublicToken(): string | null {
-  return publicAccessToken;
+  return publicAccessToken || (typeof window !== 'undefined' ? localStorage.getItem('nestora_public_access_token') : null);
 }
 
 interface RequestOptions extends RequestInit {
@@ -115,24 +135,26 @@ function onAdminRefreshed(token: string) {
 
 async function refreshAdminToken(): Promise<string | null> {
   try {
+    const fallbackRefresh = adminRefreshToken || (typeof window !== 'undefined' ? localStorage.getItem('nestora_admin_refresh_token') : null);
     const res = await fetch(`${API_BASE_URL}/admin/auth/refresh`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken: fallbackRefresh }),
       credentials: 'include',
     });
     if (!res.ok) {
-      setAdminToken(null);
+      setAdminToken(null, null);
       return null;
     }
-    const data: ApiResponse<{ accessToken: string }> = await res.json();
+    const data: ApiResponse<{ accessToken: string; refreshToken?: string }> = await res.json();
     if (data.success && data.data?.accessToken) {
-      setAdminToken(data.data.accessToken);
+      setAdminToken(data.data.accessToken, data.data.refreshToken);
       return data.data.accessToken;
     }
-    setAdminToken(null);
+    setAdminToken(null, null);
     return null;
   } catch {
-    setAdminToken(null);
+    setAdminToken(null, null);
     return null;
   }
 }
@@ -151,10 +173,13 @@ export async function apiRequest<T = any>(endpoint: string, options: RequestOpti
   const isAdmin = authType === 'admin' || (authType !== 'public' && endpoint.includes('/admin/'));
   const isPublicAuth = authType === 'public' || (!isAdmin && (endpoint.startsWith('/wishlist') || endpoint.startsWith('/auth/me')));
 
-  if (isAdmin && adminAccessToken) {
-    requestHeaders['Authorization'] = `Bearer ${adminAccessToken}`;
-  } else if (isPublicAuth && publicAccessToken) {
-    requestHeaders['Authorization'] = `Bearer ${publicAccessToken}`;
+  const effectiveAdminToken = adminAccessToken || (typeof window !== 'undefined' ? localStorage.getItem('nestora_admin_access_token') : null);
+  const effectivePublicToken = publicAccessToken || (typeof window !== 'undefined' ? localStorage.getItem('nestora_public_access_token') : null);
+
+  if (isAdmin && effectiveAdminToken) {
+    requestHeaders['Authorization'] = `Bearer ${effectiveAdminToken}`;
+  } else if (isPublicAuth && effectivePublicToken) {
+    requestHeaders['Authorization'] = `Bearer ${effectivePublicToken}`;
   }
 
   // If body is FormData, delete Content-Type so browser sets boundary
