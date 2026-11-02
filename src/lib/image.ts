@@ -25,3 +25,4 @@ export function resolveImageUrl(url?: string | null): string {
   // If it's already an absolute HTTP/HTTPS or data URL, return directly
   return trimmed;
 }
+
