@@ -45,8 +45,12 @@ app.use(
       // allow requests with no origin like curl or mobile apps
       if (!origin) return callback(null, true);
       if (
+        !rawCors ||
         corsOrigins.includes('*') ||
         corsOrigins.indexOf(origin) !== -1 ||
+        origin.includes('.vercel.app') ||
+        origin.includes('localhost') ||
+        origin.includes('127.0.0.1') ||
         corsOrigins.some((allowed) => allowed && (origin === allowed || origin.includes(allowed.replace(/^https?:\/\//, '')))) ||
         process.env.NODE_ENV !== 'production'
       ) {
@@ -59,6 +63,30 @@ app.use(
 );
 app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));
+
+// URL Rewrite Middleware: Tolerates requests sent without the /api/v1 prefix
+app.use((req, res, next) => {
+  if (
+    !req.url.startsWith('/api/') &&
+    !req.url.startsWith('/uploads') &&
+    req.url !== '/'
+  ) {
+    req.url = `/api/v1${req.url}`;
+  } else if (req.url.startsWith('/api/') && !req.url.startsWith('/api/v1/')) {
+    req.url = req.url.replace(/^\/api/, '/api/v1');
+  }
+  next();
+});
+
+// Root welcome / status check
+app.get('/', (req: Request, res: Response) => {
+  res.status(200).json({
+    status: 'UP',
+    message: 'Nestora Backend API is running',
+    version: '1.0.0',
+    documentation: '/api/v1/health'
+  });
+});
 
 // Host Disk Media Serving (Zero cloud storage fees)
 app.use('/uploads', express.static(UPLOAD_BASE_DIR));
