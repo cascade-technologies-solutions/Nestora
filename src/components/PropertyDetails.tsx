@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { useWishlist, WishlistProperty } from '@/contexts/WishlistContext';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { resolveImageUrl } from '@/lib/image';
 import { useNavigate, Link } from 'react-router-dom';
 import { CONFIG, isWhatsAppEnabled, getWhatsAppLink } from '@/config';
 
@@ -40,7 +41,7 @@ const PropertyDetails = ({ property, isOpen, onClose }: PropertyDetailsProps) =>
   const isFavorite = isInWishlist(property.id);
   
   const images = [
-    property.image,
+    resolveImageUrl(property.image),
     'https://images.unsplash.com/photo-1568605114967-8130f3a36994?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
     'https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
   ];

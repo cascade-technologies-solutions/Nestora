@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Search, Upload, Plus, Trash2, CheckCircle2, ImageOff, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { resolveImageUrl } from '@/lib/image';
 
 interface MediaLibraryModalProps {
   isOpen: boolean;
@@ -165,7 +166,7 @@ export const MediaLibraryModal = ({ isOpen, onClose, onSelect, title = "Select I
 
   const handleSelect = () => {
     if (selectedUrl) {
-      onSelect(selectedUrl);
+      onSelect(resolveImageUrl(selectedUrl));
       onClose();
     }
   };
@@ -247,7 +248,7 @@ export const MediaLibraryModal = ({ isOpen, onClose, onSelect, title = "Select I
               <div className="border border-slate-850 bg-slate-850 p-3 rounded-lg space-y-2">
                 <h4 className="text-xs font-semibold text-slate-300">Selected Preview</h4>
                 <div className="relative h-28 w-full bg-slate-900 rounded-md overflow-hidden">
-                  <img src={selectedUrl} alt="Selected preview" className="w-full h-full object-cover" />
+                  <img src={resolveImageUrl(selectedUrl)} alt="Selected preview" className="w-full h-full object-cover" />
                 </div>
                 <Button
                   onClick={handleSelect}
@@ -293,7 +294,7 @@ export const MediaLibraryModal = ({ isOpen, onClose, onSelect, title = "Select I
                           isSelected ? "border-blue-500 ring-2 ring-blue-500/20 scale-[0.98]" : "border-slate-800 hover:border-slate-700"
                         )}
                       >
-                        <img src={asset.url} alt={asset.name} className="w-full h-full object-cover" />
+                        <img src={resolveImageUrl(asset.url)} alt={asset.name} className="w-full h-full object-cover" />
                         
                         {/* Selector overlays */}
                         {isSelected && (

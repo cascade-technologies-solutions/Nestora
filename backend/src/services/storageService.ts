@@ -1,8 +1,9 @@
 import path from 'path';
 import fs from 'fs';
+import { Readable } from 'stream';
 import multer, { FileFilterCallback } from 'multer';
-import { Request } from 'express';
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { Request, Response } from 'express';
+import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 
 export const UPLOAD_BASE_DIR = path.resolve(__dirname, '../../uploads');
 
@@ -27,16 +28,15 @@ export const ALLOWED_MIME_TYPES = [
 export const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 // Determine if S3 / Neon Object Storage is configured
-const isS3Configured = (): boolean => {
-  const isS3 = process.env.STORAGE_PROVIDER === 's3';
+export const isS3Configured = (): boolean => {
   const hasEndpoint = Boolean(process.env.AWS_ENDPOINT_URL_S3 || process.env.S3_ENDPOINT);
   const hasKey = Boolean(process.env.AWS_ACCESS_KEY_ID || process.env.S3_ACCESS_KEY_ID);
-  return isS3 && hasEndpoint && hasKey;
+  return Boolean(hasEndpoint && hasKey && process.env.STORAGE_PROVIDER !== 'local');
 };
 
 // Lazy S3 Client instantiation
 let s3ClientInstance: S3Client | null = null;
-function getS3Client(): S3Client {
+export function getS3Client(): S3Client {
   if (!s3ClientInstance) {
     const endpoint = process.env.AWS_ENDPOINT_URL_S3 || process.env.S3_ENDPOINT;
     const region = process.env.AWS_REGION || process.env.S3_REGION || 'ap-southeast-1';
@@ -99,43 +99,70 @@ export const upload = multer({
 });
 
 /**
+ * Streams a stored file to the client from local disk or Neon S3 Object Storage
+ */
+export async function streamStoredFile(folder: string, filename: string, res: Response): Promise<boolean> {
+  const localPath = path.join(UPLOAD_BASE_DIR, folder, filename);
+  if (fs.existsSync(localPath)) {
+    res.sendFile(localPath);
+    return true;
+  }
+
+  if (isS3Configured()) {
+    try {
+      const s3 = getS3Client();
+      const bucket = process.env.S3_BUCKET || 'uploads';
+      const s3Key = `${folder}/${filename}`;
+      const obj = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: s3Key }));
+      if (obj.ContentType) res.setHeader('Content-Type', obj.ContentType);
+      if (obj.ContentLength) res.setHeader('Content-Length', obj.ContentLength);
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      (obj.Body as Readable).pipe(res);
+      return true;
+    } catch (err: any) {
+      console.warn(`S3 file not found for ${folder}/${filename}`);
+    }
+  }
+
+  return false;
+}
+
+/**
  * Uploads a staged file to Neon Object Storage (if S3 configured) or retains on host disk
  */
 export async function persistUploadedFile(file: Express.Multer.File, folder: string): Promise<string> {
   const filename = file.filename;
   if (isS3Configured()) {
-    const s3 = getS3Client();
-    const bucket = process.env.S3_BUCKET || 'uploads';
-    const s3Key = `${folder}/${filename}`;
-    const fileBuffer = await fs.promises.readFile(file.path);
+    try {
+      const s3 = getS3Client();
+      const bucket = process.env.S3_BUCKET || 'uploads';
+      const s3Key = `${folder}/${filename}`;
+      const fileBuffer = await fs.promises.readFile(file.path);
 
-    await s3.send(
-      new PutObjectCommand({
-        Bucket: bucket,
-        Key: s3Key,
-        Body: fileBuffer,
-        ContentType: file.mimetype,
-      })
-    );
-
-    const endpoint = (process.env.AWS_ENDPOINT_URL_S3 || process.env.S3_ENDPOINT || '').replace(/\/$/, '');
-    return `${endpoint}/${bucket}/${s3Key}`;
+      await s3.send(
+        new PutObjectCommand({
+          Bucket: bucket,
+          Key: s3Key,
+          Body: fileBuffer,
+          ContentType: file.mimetype,
+        })
+      );
+    } catch (err: any) {
+      console.error('Failed to upload file to Neon Object Storage, falling back to local disk:', err);
+    }
   }
 
-  // Local disk URL fallback
-  return `/uploads/${folder}/${filename}`;
+  // Always return the reliable backend proxy URL so images load smoothly on cross-domain frontend
+  const baseUrl = (process.env.RENDER_EXTERNAL_URL || process.env.BACKEND_URL || '').replace(/\/$/, '');
+  return baseUrl ? `${baseUrl}/uploads/${folder}/${filename}` : `/uploads/${folder}/${filename}`;
 }
 
 /**
  * Construct public URL for uploaded file (Local fallback helper)
  */
 export function getPublicUrl(folder: string, filename: string): string {
-  if (isS3Configured()) {
-    const endpoint = (process.env.AWS_ENDPOINT_URL_S3 || process.env.S3_ENDPOINT || '').replace(/\/$/, '');
-    const bucket = process.env.S3_BUCKET || 'uploads';
-    return `${endpoint}/${bucket}/${folder}/${filename}`;
-  }
-  return `/uploads/${folder}/${filename}`;
+  const baseUrl = (process.env.RENDER_EXTERNAL_URL || process.env.BACKEND_URL || '').replace(/\/$/, '');
+  return baseUrl ? `${baseUrl}/uploads/${folder}/${filename}` : `/uploads/${folder}/${filename}`;
 }
 
 /**

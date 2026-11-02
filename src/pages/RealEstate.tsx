@@ -13,6 +13,7 @@ import Footer from '@/components/Footer';
 import { isPropertyInPriceRange } from '@/data/properties';
 import { propertyRepository } from '@/admin/repositories/propertyRepository';
 import type { AdminProperty } from '@/admin/types/admin';
+import { resolveImageUrl } from '@/lib/image';
 
 const RealEstate = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -335,7 +336,7 @@ const PropertyCard = ({ property, isVisible, delay, onClick }: PropertyCardProps
       <div>
         <div className="relative h-56 overflow-hidden">
           <img 
-            src={property.image} 
+            src={resolveImageUrl(property.image)} 
             alt={property.title} 
             className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
           />

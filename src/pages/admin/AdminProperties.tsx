@@ -28,6 +28,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { StatusBadge } from '@/components/admin/ui/StatusBadge';
+import { resolveImageUrl } from '@/lib/image';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -546,7 +547,7 @@ const AdminProperties = () => {
                       <td className="p-4">
                         <div className="w-12 h-12 bg-slate-950 rounded-lg overflow-hidden border border-slate-800 flex-shrink-0">
                           {property.image ? (
-                            <img src={property.image} alt={property.title} className="w-full h-full object-cover" />
+                            <img src={resolveImageUrl(property.image)} alt={property.title} className="w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
                               <ImageOff className="w-4 h-4 text-slate-700" />
