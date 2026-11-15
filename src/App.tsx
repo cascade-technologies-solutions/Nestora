@@ -52,7 +52,10 @@ const AdminLoadingFallback = () => (
 
 import { queryClient } from "./lib/queryClient";
 
-const appBasename = import.meta.env.BASE_URL.replace(/\/$/, "") || "";
+const isNestedHub =
+  typeof window !== "undefined" &&
+  (window.location.pathname === "/nestorahub" || window.location.pathname.startsWith("/nestorahub/"));
+const appBasename = isNestedHub ? "/nestorahub" : (import.meta.env.BASE_URL.replace(/\/$/, "") || "");
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
